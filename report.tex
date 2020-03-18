@@ -1,0 +1,179 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+\begin{document}
+
+\section{Setting the stage}
+Our aim is to solve the
+\textit{Linear Square Problem}
+applying two different methods: the
+\textit{QR factorization with Householder Reflectors} and the
+\textit{Conjugate Gradient Method}.
+
+\subsection{Linear Square Problem}
+Our problem is: how close can we get to \\\\
+\centerline{$\min_{x \in R^n}\|Ax-b\|$} \\\\
+where
+\begin{itemize}
+	\item $A$ is a \textit{tall thin matrix} (so it is a matrix of the form $A\in M(m, n, R)$ where $m \gg n$)
+	\item $b$ is a vector of real number
+	\item $\|.\|$ is the \textit{2-norm} or \textit{Euclidean Norm}: $\|x\| := \sqrt{\sum_{i=1}^n x_i}$
+\end{itemize}
+and so which the closest vector to $b$ inside the hyperplane $Im(A)$.
+
+\subsection{QR factorization with Householder Reflectors}
+Every $A \in R^{m \times n}$ can be written as $A = QR$, where $Q \in R^{m \times m}$ orthogonal, $R \in R^{m \times n}$ upper traingular ($i > j \Rightarrow A_{ij} = 0$).
+To obtain this form of factorization, we use the \textit{Householder reflectors}.
+\textit{Househoulder reflectors} (written as $H$) have the form $H = I - \frac{2}{u^{T}u}uu^{T}$ and $\forall u \in R^{m}, H$ is orthogonal, beucase $HH^{T} =[$using $(I - 2vv^{T})^{T} = I^{T} - (2vv^{T}) = I - 2vv^{T} \Rightarrow H = H^{T}] = (I - 2vv^{T})(I - 2vv^{T}) = I - 2vv^{T} - 2vv^{T} + 4vv^{T}vv^{T} = [$using $ v^{T}v = \|v\| =  1] = I - 2I - 2I + 4I = I$.
+H can also be written as $I - 2vv^{T}$ where $v = \frac{u}{\|u\|}$.
+H is a matrix that if multiplied with a vector perform a symmetry w.r.t. the plane orthogonal to $u$.
+By setting this $u=x-y$, we are projecting $x$ in $y$, and if $y$ has the form $e_{1}\|x\|$ (because $H$ is orthogonal and must preserve the norm), we are projecting $x$ in the first coordinate.
+But if $\|x\| \sim x_{1}$, this could lead to \textit{cancellation problem}, so it is a good pratice to choose the norm of $x$ accordingly with the sign of the first entry, so $+\|x\|$ if $x_{1}$ is negative and $-\|x\|$ if $x_{1}$ is positive.
+We also have a way to perform \textbf{fast product Househoulder-vector} by re-arranging parenthesis: we can rewrite $Hx = (I - 2vv^{T})x = x - 2v(v^{T}x)$ to reduce the computational complexity from $O(m^2)$ to $O(m)$.
+We can use the \textit{Householder reflector} to form matrices $Q_{i}$ of the form $\begin{bmatrix} I_{i-1} & 0 \\ 0 & H_{i}\end{bmatrix}$, in this way we don't change the values of the first $i-1$ rows and columns of $A$ thanks to \textit{matrix-block multiplication}) and we get $Q_{n} \hdots Q_{3}Q_{2}Q_{1}A = R$ and (by multiplying both part initially with $Q_{n}^{T}$, then $Q_{n-1}^{T} \hdots$) we finally get $A = (Q_{1}^{T}Q_{2}^{T} \hdots Q_{n}^{T})R$ and we define $Q := Q_{1}^{T}Q_{2}^{T} \hdots Q_{n}^{T}$, which is orthogonal, because product of orthogonal matrices gives us an orthogonal matrix.
+% Pseudocode %
+\makeatletter
+\def\BState{\State\hskip-\ALG@thistlm}
+\makeatother
+\begin{algorithm}
+\caption{QR factorization with Householder Reflectors}\label{euclid}
+\begin{algorithmic}[1]
+\Function{$[Q, R] \gets myqr(A)$}{}
+\BState \emph{top}:
+\State $\textit{[m, n]} \gets \textit{size(A)}$
+\State $\textit{Q} \gets \textit{eye(m)}$
+\BState \emph{loop}:
+\State $\textit{for j = 1:n}$
+\State \quad$\textit{v} \gets \textit{householder-vector(A(j:end, j))}$
+\State \quad$\textit{H} \gets \textit{eye(length(v)) - 2*v*v'}$
+\State \quad$\textit{A(j:end, j:end)} \gets \textit{H * A(J.end, j:end)}$
+\State \quad$\textit{Q(:, j:end)} \gets \textit{Q(:, j:end) * H}$
+\BState \emph{end}:
+\State $\textit{R = A}$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+% Pseudocode %
+\\We can make some improvement to this algorithm (which has a computational complexity of $O(n^4)$ because of the two matrix-matrix multiplication in lines 8 and 9), expecially using \textbf{fast product Householder-vector} in line 8 and in line 9: in this way we don't have anymore a matrix-matrix multiplication (which cost is $O(m^3)$), but we have a vector-matrix multiplication, a vector-vector multiplication and a subtraction between two matrices, and all these operation have a computational complexity of $O(m^2)$. So, to upgrade the matrix A like in line 8, we use this property, and we can also put manually the zeros in the right place and if the matrix is square, we can stop the algorithm 1 step before the full size, because last iteration can only change the sign of last entry. So a more efficent variant of the algorithm is this:
+% Pseudocode final algorithm %
+\makeatletter
+\def\BState{\State\hskip-\ALG@thistlm}
+\makeatother
+\begin{algorithm}
+\caption{QR factorization with Householder Reflectors}\label{euclid}
+\begin{algorithmic}[1]
+\Function{$[Q, R] \gets myqr(A)$}{}
+\BState \emph{top}:
+\State $\textit{[m, n]} \gets \textit{size(A)}$
+\State $\textit{V} \gets \textit{emptyList}$
+\State $\textit{Q} \gets \textit{$I_{m \times m}$}$
+\BState \emph{loop}:
+\State \emph{for j = 1:min(m-1, n)}:
+\State \quad$\textit{[v, s]} \gets \textit{householder-vector(A(j:end, j))}$
+\State \quad$\textit{A(j, j)} \gets \textit{s}$
+\State \quad$\textit{A(j+1:end, j)} \gets \textit{0}$
+\State \quad$\textit{A(j:end, j:end)} \gets \textit{A(J.end, j:end) - 2*v*(v'*A(j:end, j+1:end))}$
+\State \quad$\textit{Q(:, j:end)} \gets \textit{Q(:, j:end) - Q(:, j:end)*v*2*v'}$
+\BState \emph{end}:
+\State $\textit{R = A}$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+% Pseudocode %
+\\There is still a last improvement that we can make, and it is blocking: this algorithm is not efficent in general becasuse it makes a lot of matrix-vector multiplication, for example in line 9. We could accumulate this $v$ vectors and multipling them together, in this way we have the same number of operations, but on a computer this way is more efficent because computer manages well block operation.
+% Pseudocode final algorithm %
+\makeatletter
+\def\BState{\State\hskip-\ALG@thistlm}
+\makeatother
+\begin{algorithm}
+\caption{QR factorization with Householder Reflectors}\label{euclid}
+\begin{algorithmic}[1]
+\Function{$[Q, R] \gets myqr(A)$}{}
+\BState \emph{top}:
+\State $\textit{[m, n]} \gets \textit{size(A)}$
+\State $\textit{V} \gets \textit{emptyList}$
+\State $\textit{Q} \gets \textit{$I_{m \times m}$}$
+\BState \emph{loop}:
+\State \emph{for j = 1:min(m-1, n)}:
+\State \quad$\textit{[v, s]} \gets \textit{householder-vector(A(j:end, j))}$
+\State \quad$\textit{A(j, j)} \gets \textit{s}$
+\State \quad$\textit{A(j+1:end, j)} \gets \textit{0}$
+\State \quad$\textit{A(j:end, j:end)} \gets \textit{A(J.end, j:end) - 2*v*(v'*A(j:end, j+1:end))}$
+\State \quad$\textit{V} \gets \textit{V.insert(v)}$
+\BState \emph{end}:
+\State $\textit{R = A}$
+\State $\textit{for i = 1:min(m-1, n)}$
+\State \quad$\textit{Q(i:end, i:end) = Q(i:end, i:end)*[$I_{min(m-i, n) - i}$ - 2*$v_{i}*v_{i}^{T}]$}$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+% Pseudocode %
+\\We know that this algorithm is bandwith heavy and not parallelizable, as every reflection that produces a new zero element changes the entirety of both Q and R matrices.
+% Modification of the algorithm %
+We are going to use a variant of the QR factorization, in which we do not form the matrix Q, but we store the Householder vectors $u_k$ and we use them to perform the implicit product with $Q$ and $Q^T$, in this way we need just to store those vectors which size is $O(mn)$ instead of $O(m^2)$ and if $m \gg n$, this has a big impact: this could lead to have a cost for thin QR equal to $O(mn^2)$, so it scales lineary with the largest dimension of the matrix and quadratically with the other one. The computational cost for thin QR factorization is $2mn^2 - \frac{2}{3}n^3 + O(mn)$ that represent the two cases: if $m = n$, we have that the cost is $\frac{4}{3}n^3$, if $m \gg n$ the cost scales like $2mn^2$. LU/Gaussian elimination has computational cost of $\frac{2}{3}n^3$.
+% How to use QR to solve LS %
+\\\textbf{How can we use QR to solve LS?}\\
+If $A$ is a \textit{tall thin matrix} ($m \gg n$), we write the matrix $A$ as $QR$, where
+$Q = [Q_1, Q_2]$ and
+$R = \begin{bmatrix}R_{1} \\ 0\end{bmatrix}$ and since orthogonal matrices preserve norms, we can do
+$\|Ax - b\| = \|Q^{T}(Ax-b)\| =
+\|Q^{T}QRx - Q^{T}b\| =
+\|Rx - Q^{T}b\| =
+\left\lVert\begin{bmatrix}R_{1} \\ 0\end{bmatrix}x - \begin{bmatrix}Q_{1}^T \\ Q_{2}^T\end{bmatrix}b\right\rVert =
+\left\lVert\begin{bmatrix}R_{1}x - Q_{1}^{T}b \\ Q_{2}^{T}b\end{bmatrix}\right\rVert$
+so our problem can be summarized as
+$\|Ax - b\| =
+\left\lVert \begin{bmatrix} R_{1}x - Q_{1}^{T}b \\ Q_{2}^{T}b\end{bmatrix} \right\lVert$
+and now I can chose x s.t. $R_{1}x - Q_{1}^{T}b = 0$ (just take $x = R_{1}^{-1}Q_{1}^{T}b$ if $R_{1}$ is invertible), and in this way we have $\min_{x \in R^n}\|Ax - b\| = \|Q_{2}^{T}b\|$ and $x  = \arg\!\min_{x \in R^n}\|Ax - b\| = x = R_{1}^{-1}Q_{1}^{T}b$.
+How many solution?
+$\min_{x \in R^n}\|Ax - b\|$ has unique solution $\iff A$ has full column rank $\iff A^{T}A \succ 0 \iff$ 0 is not an eigenvalue of $A^{T}A \iff A^{T}A$ is invertible. We can add $[\iff R_{1}$ is invertible$]$ because $A^{T}A = (QR)^{T}QR = R^{T}Q^{T}QR = R^{T}R = \begin{bmatrix} R_{1} \\ 0 \end{bmatrix}^{T} \begin{bmatrix} R_{1} \\ 0 \end{bmatrix} = \begin{bmatrix} R_{1}^{T} & 0 \end{bmatrix} \begin{bmatrix} R_{1} \\ 0 \end{bmatrix} = R_{1}^{T}R_{1}$.
+\\ $A^{T}A = R_{1}^{T}R_{1}$, $A^{T}A$ is a square matrix that is the product of the two square matrices $R_{1}^{T}$ and $R_{1}$, so $A^{T}A$ is invertible $\iff$ both $R_{1}$ and $R_{1}^{T}$ are invertible: this can be seen looking at the determinant $[ det(A^{T}A) = det(R_{1}^{T}) det(R_{1}) ]$.
+Finally, we got $A^{T}A = R_{1}^{T}R_{1}$ is invertible $\iff R_{1}$ is invertible. We can easily check if $R_{1}$ is invertible because it is upper triangular, so we just look at its elements on the diagonal: if they are all $\neq 0$, it is invertible.
+% Conjugate gradiend method %
+\subsection{Conjugate Gradient Method}
+If $A^{T}A$ is positive definite, then we can find a solution to $Ax = b$ by minimizing the (strictly convex) function $f(x) = \frac{1}{2}x^{T}Ax - b^{T}x$ (that is equal to set the gradient $= 0$). Doing \textit{Conjugate gradient} on this problem, can be interpreted as \textit{Krylov subspace method}. We remember that \begin{itemize}
+\item \textbf{A-orthogonal}: $x, y \in R^{m}$ are A-orthogonal if $x^{T}Ay = 0$
+\item \textbf{A-norm}: the A-norm of $x \in R^{m}$ is $\|x\|_{A} := (x^{t}Ax)^{\frac{1}{2}}$. Note that if A is \textit{positive definite}, then the A-norm is $\geq 0$ (it is $0$ only for the $0$ vector)
+\end{itemize}
+For conjugate gradient, we use three ingredients: the current interate $x_{k}$, the residual $r_{k} = b - Ax_{k} = -\Delta f(x_{k})$ and the search direction $d_{k}$.
+% Pseudocode CG %
+\makeatletter
+\def\BState{\State\hskip-\ALG@thistlm}
+\makeatother
+\begin{algorithm}
+\caption{Conjugate Gradient}\label{euclid}
+\begin{algorithmic}[1]
+\Function{$x^{*} \gets mycg(A, b)$}{}
+\BState \emph{top}:
+\State $x_{0} \gets 0$
+\State $r_{0} \gets d_{0} \gets b$
+\BState \emph{loop}:
+\State \emph{for k = 1:n}
+\State \quad$\alpha_{k} = (r_{k-1}^{T}r_{k-1})/(d_{k-1}^{T}Ad_{k-1})$
+\State \quad$x_{k} = x_{k-1} + \alpha_{k}Ad_{k-1}$
+\State \quad$\beta_{k} = (r_{k}^{T}r_{k})/(r_{k-1}^{T}r_{k-1})$
+\State \quad$d_{k} = r_{k} + \beta_{k}d_{k-1}$
+\BState \emph{end}:
+\State $x_{*} = x_{k}$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+% Pseudocode %
+\\Initially. to keep things simple, se chose as our first direction the prior $b$, because we start with $x_{0} = 0$. At each iteration, we need to chose $\alpha_{k}$, that is our step length, in such a way that it minimizes the residual along the search direction. Then we can update our $x_{k}$ and, consequently, the residual $r_{k}$. To update the residual, we use the fact that $b - Ax_{k} = [x_{k} = x_{k-1} + \alpha_{k}d_{k-1}] = b - A(x_{k-1} + \alpha_{k}d_{k-1}) = [b-Ax_{k-1} = r_{k-1}] = r_{k-1} - \alpha_{k}Ad_{k-1}$. The trick about conjugate gradient is that at each step we generate a new search direction, which is not exactly the residual, but is the residual modified to be A-orthogonal to the previous search direction. so $\beta_{k}$ is a scalar that is chosen s.t. $d_{k}$ is A-orthogonal to $d_{k-1}$ $(d_{k-1}Ad_{k} = 0)$. We don't need to remember the history of each step, we just need to work on three variables $x, r$ and $d$. The cost is $n$ matrix-vector products (for $Ad_{k-1}$, that appears two times, but we can compute it and store it) plus $O(nm)$, which is the same cost for Krylov method for asymmetric matrices. In fact, this algorithm is Krylov type algorithm.
+A \textbf{Krylov subspace} of dimension $k$ $K_{k}(A, b)$ is the span made of our iterations, and this is s.t. $K_{k}(A, b) = span(x_{1}, x_{2}, \hdots, x_{k}) = span(d_{0}, d_{1}, \hdots, d_{k-1}) = span(r_{0}, r_{1}, \hdots, r_{k-1})$ where $span(v_{1}, \hdots, v_{n}) := \{\alpha_{1}v_{1} + \hdots + \alpha_{n}v_{n}\\| \alpha_{1}, \hdots, \alpha_{n} \in R\}$ . \textbf{Why?} \begin{itemize}
+\item Initially $x_{0} = 0$ and $r_{0} = d_{0} = b \in K_{1}(A, b) = span(b)$
+\item Then $x_{1} = 0 + \alpha_{1}b \in span(b) = K_{1}(A, b)$, $r_{1} = b - \alpha_{k}Ab \in span(b, Ab) = K_{2}(A, b)$, $d_{1} = r_{1} + \beta_{k}b \in K_{2}(A, b)$
+\item $x_{2} = x_{1} + \alpha_{2}d_{1} \in K_{2}(A, b)$, $r_{2} = r_{1} - \alpha_{k}Ad_{1} \in K_{3}(A, b) [$because $ AK_{2}(a, b) \subseteq K_{3}(A, b)$]
+\\\vdots
+\end{itemize}
+So we build a \textbf{orthogonal basis} (not orthonormal) $c_{i}, \hdots, c_{k}$, where necessarily $c_{i}^{T}c_{j} = 0  \forall i \neq j$. In our algorithm, we have that $r_{i}^{T}r_{k} = d_{i}^{T}Ad_{k} = 0 \forall i > k$, and $r_{k}^{T}r_{k} \neq 0$ because they are not orthonormal (but if we want, we can rescale it and made them orthonormal). The $r_{i}$ are orthogonal, while the $d_{i}$ are A-orthonormal.
+\\\textbf{Dim:} we want to prove by induction that $r_{i}^{T}r_{k} = 0 \forall i > k$
+\\Considering that $r_{k} = r_{k-1} - \alpha_{k}Ad_{k-1}$, we have that $r_{i}^{T}r_{k} = r_{i}^{T}(r_{k-1} - \alpha_{k}A d_{k-1}) = r_{i}^{T}r_{k-1} - \alpha_{k}r_{i}^{T}Ad_{k-1}$ and we must prove that this is $= 0 \forall i < k-1$, we divide it in two cases:
+\begin{itemize}
+\item case 1: $i < k-1$, this is our induction step, $r_{i}^{T} = r_{i}^{T}r_{k-1} - \alpha_{k}r_{i}^{T}d_{k-1}$, the first term is $0$ by induction, and the second term is $0$ because $r_{i}$ lives in a Krylov space, $r_{i} \in K_{i+1}(A, b) = span(d_{0}, d_{1}, \hdots. d_{i})$ and $d_{0}, \hdots, d_{i}$ are all A-orthogonal to $d_{k-1}$ beucase of the induction step
+\item case 2: $i = k-1$, $r_{k-1}^{T}r_{k} = r_{k-1}^{T}r_{k-1} - \alpha_{k}r_{k-1}^{T}Ad_{k-1}$ and we know that $r_{k-1}^{T}r_{k-1} = \|r_{k-1}\|^{2}  \neq 0$ in general. This would be zero if $\alpha_{k} = \frac{r_{k-1}^{T}r_{k-1}}{r_{k-1}^{T}Ad_{k-1}}$. By definition, $\alpha_{k} = \frac{r_{k-1}^{T}r_{k-1}}{d_{k-1}^{T}Ad_{k-1}}$, so they differe from one term, but you can prove that $d_{k-1}^{T}Ad_{k-1} = [$because of the relation $d_{k} = r_{k} + \beta_{k}d_{k-1}] = (r_{k-1}^{T}+\beta_{k-1}d_{k-2})^{T}Ad_{k-1} = r_{k-1}^{T}Ad_{k-1} + \beta_{k-1}d_{k-2}^{T}Ad_{k-1}$ where the last term is $0$ by induction and the scrict minor index (the other assertion $d_{i}^{T}Ad_{k} = 0$ is proved similarly). The $r_{i}$ are an orthonormal basis of $K_{k}(A, b)$ and $\frac{r_{i}}{\|r_{i}\|}$ are orthonormal basis.
+\end{itemize}
+So in CG, at each iteration, we compute $x_{k}$ s.t. $v^{T}r_{K} = 0 \forall$ vectors in $K_{k}(A, b) = span(r_{0}, r_{1}, \hdots, r_{k-1})$ in a way that $r_{i}^{T}r_{k} = 0 i < k \iff Q_{k}^{T}(b - Ax_{k}) = 0$, because columns of $Q_{k}$ are $q_{k} = \frac{r_{k}}{\|r_{k}\|}$
+
+\end{document}

@@ -25,12 +25,13 @@ and so which the closest vector to $b$ inside the hyperplane $Im(A)$.
 \subsection{QR factorization with Householder Reflectors}
 Every $A \in R^{m \times n}$ can be written as $A = QR$, where $Q \in R^{m \times m}$ orthogonal, $R \in R^{m \times n}$ upper traingular ($i > j \Rightarrow A_{ij} = 0$).
 To obtain this form of factorization, we use the \textit{Householder reflectors}.
-\textit{Househoulder reflectors} (written as $H$) have the form $H = I - \frac{2}{u^{T}u}uu^{T}$.
+\textit{Househoulder reflectors} (written as $H$) have the form $H = I - \frac{2}{u^{T}u}uu^{T}$ and $\forall u \in R^{m}, H$ is orthogonal, beucase $HH^{T} =[$using $(I - 2vv^{T})^{T} = I^{T} - (2vv^{T}) = I - 2vv^{T} \Rightarrow H = H^{T}] = (I - 2vv^{T})(I - 2vv^{T}) = I - 2vv^{T} - 2vv^{T} + 4vv^{T}vv^{T} = [$using $ v^{T}v = \|v\| =  1] = I - 2I - 2I + 4I = I$.
 H can also be written as $I - 2vv^{T}$ where $v = \frac{u}{\|u\|}$.
 H is a matrix that if multiplied with a vector perform a symmetry w.r.t. the plane orthogonal to $u$.
 By setting this $u=x-y$, we are projecting $x$ in $y$, and if $y$ has the form $e_{1}\|x\|$ (because $H$ is orthogonal and must preserve the norm), we are projecting $x$ in the first coordinate.
 But if $\|x\| \sim x_{1}$, this could lead to \textit{cancellation problem}, so it is a good pratice to choose the norm of $x$ accordingly with the sign of the first entry, so $+\|x\|$ if $x_{1}$ is negative and $-\|x\|$ if $x_{1}$ is positive.
 We also have a way to perform \textbf{fast product Househoulder-vector} by re-arranging parenthesis: we can rewrite $Hx = (I - 2vv^{T})x = x - 2v(v^{T}x)$ to reduce the computational complexity from $O(m^2)$ to $O(m)$.
+We can use the \textit{Householder reflector} to form matrices $Q_{i}$ of the form $\begin{bmatrix} I_{i-1} & 0 \\ 0 & H_{i}\end{bmatrix}$, in this way we don't change the values of the first $i-1$ rows and columns of $A$ thanks to \textit{matrix-block multiplication}) and we get $Q_{n} \hdots Q_{3}Q_{2}Q_{1}A = R$ and (by multiplying both part initially with $Q_{n}^{T}$, then $Q_{n-1}^{T} \hdots$) we finally get $A = (Q_{1}^{T}Q_{2}^{T} \hdots Q_{n}^{T})R$ and we define $Q := Q_{1}^{T}Q_{2}^{T} \hdots Q_{n}^{T}$, which is orthogonal, because product of orthogonal matrices gives us an orthogonal matrix.
 % Pseudocode %
 \makeatletter
 \def\BState{\State\hskip-\ALG@thistlm}

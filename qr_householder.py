@@ -80,6 +80,6 @@ def qr_factorization3(x_):
         V.append(v_)
 
     for j, v_ in enumerate(V):
-        Q_[j:, j:] = np.matmul(Q_[j:, j:], (np.identity(min(m-1, n)-j) - 2*np.matmul(v_, v_T)))
+        Q_[:, j:] = Q_[:, j:] - np.matmul(Q_[:, j:], 2*np.matmul(v_, column_to_row(v_)))
     R_ = x_
     return Q_, R_

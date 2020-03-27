@@ -7,7 +7,7 @@ def read_data(filename):
     A = genfromtxt(filename, delimiter=',')
 
     # Print dimensions
-    #print('Readed {} rows and {} column'.format(A.shape[0], A.shape[1]))
+    print('Readed {} rows and {} column'.format(A.shape[0], A.shape[1]))
     #print('First line: '+str(A[0]))
 
     # Remove indexes
@@ -18,8 +18,10 @@ def read_data(filename):
     #print('First line: '+str(A[0]))
 
     # Add derived columns
-    A_1 = np.sum(A, 1)
-    A = np.c_[A, A_1]
+    A_1 = np.log(np.abs(A))
+    A_2 = A[:, 1] * A[:, 2] * A[:, 3]
+    A_3 = np.square(A[:, 4])
+    A = np.c_[A, A_1, A_2, A_3]
     #print('Added new columns, new dimensions are {} rows and {} column'.format(A.shape[0], A.shape[1]))
     #print('First line: '+str(A[0]))
     return A

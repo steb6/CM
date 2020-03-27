@@ -14,7 +14,7 @@ for i, qr_factorization in enumerate(functions):
     done = time.monotonic_ns()
     elapsed = done - start
     # R = np.around(R, decimals=6)
-    print("QR Factorization n° {} ended".format(i))
+    print("QR Factorization n° {} ended".format(i+1))
     print("ns spent: ", elapsed)
     print("||A - QR|| =", norm(A - np.matmul(Q, R)))
 

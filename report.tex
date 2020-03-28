@@ -2,14 +2,32 @@
 \usepackage{amsmath}
 \usepackage{algorithm}
 \usepackage[noend]{algpseudocode}
-\begin{document}
 
+\begin{document}
+% Abstract %
+\thispagestyle{plain}
+\begin{center}
+    \Large
+    \textbf{Computational Matehmatics for Learning and Data Analysis}
+        
+    \vspace{0.4cm}
+    \large
+    2019 / 2020
+        
+    \vspace{0.4cm}
+    \textbf{Poggiali Alessandro, Berti Stefano}
+       
+    \vspace{0.9cm}
+    \textbf{Abstract}
+\end{center}
+\textbf{(P)} is the linear least squares problem
+\\\centerline{$\min_{x \in R^n}\|\hat{A}x-b\|$}
+\\where $\hat{A}$ is the matrix obrained by argumenting the (tall thin) matrix A from the ML-cup dataset by prof. Micheli with a few functions of your choice of the features of the dataset, and y is one of the corresponging output vecors. For instance, if $X$ contains columns $[x1, x2]$, you may add functions such as $log(x1), x1^{2}, x1*x2, \hdots$
+\\\textbf{(A1)} is an algorithm of che class of Conjugate Gradient methods [references: J. Nocedal, S. Wright, Numerical Optimization].
+\\\textbf{(A2)} is thin QR factorization with Householder reflectors [Trefethen, Bau, Numerical Linear Algebra, Lecture 10], in the variant where one does not form the matrix $Q$, but stores the Householder vectors $u_{k}$ and uses them to perform (implicitly) products with $Q$ and $Q^{T}$.
+\\No off-the-shelf solvers allowed. In particular you must implement youself the thin QR factorization, and the computational cost of your implementation should scale linearly with the largest dimension of the matrix $X$.
+% Setting the stage %
 \section{Setting the stage}
-Our aim is to solve the
-\textit{Linear Square Problem}
-applying two different methods: the
-\textit{QR factorization with Householder Reflectors} and the
-\textit{Conjugate Gradient Method}.
 
 \subsection{Linear Square Problem}
 Our problem is: how close can we get to \\\\
@@ -21,7 +39,6 @@ where
 	\item $\|.\|$ is the \textit{2-norm} or \textit{Euclidean Norm}: $\|x\| := \sqrt{\sum_{i=1}^n x_i}$
 \end{itemize}
 and so which the closest vector to $b$ inside the hyperplane $Im(A)$.
-In our case, the tall thin matric $A$ is taken from the MLCUP19, with some extra derived columns.
 \subsection{QR factorization with Householder Reflectors}
 Every $A \in R^{m \times n}$ can be written as $A = QR$, where $Q \in R^{m \times m}$ orthogonal, $R \in R^{m \times n}$ upper traingular ($i > j \Rightarrow A_{ij} = 0$).
 To obtain this form of factorization, we use the \textit{Householder reflectors}.
@@ -77,7 +94,7 @@ We also have a way to perform \textbf{fast product Househoulder-vector} by re-ar
 \end{algorithm}
 % Pseudocode %
 % How to use QR to solve LS %
-\\\textbf{How can we use QR to solve LS?}\\
+\\\\\textbf{How can we use QR to solve LS?}\\
 If $A$ is a \textit{tall thin matrix} ($m \gg n$), we write the matrix $A$ as $QR$, where
 $Q = [Q_1, Q_2]$ and
 $R = \begin{bmatrix}R_{1} \\ 0\end{bmatrix}$ and since orthogonal matrices preserve norms, we can do
@@ -137,6 +154,8 @@ We don't need to remember the history of each step, we just need to work on thre
 A \textbf{Krylov subspace} of dimension $k$ $K_{k}(A, b)$ is the span made of our iterations, and this is s.t. $K_{k}(A, b) = span(x_{1}, x_{2}, \hdots, x_{k}) = span(d_{0}, d_{1}, \hdots, d_{k-1}) = span(r_{0}, r_{1}, \hdots, r_{k-1})$ where $span(v_{1}, \hdots, v_{n}) := \{\alpha_{1}v_{1} + \hdots + \alpha_{n}v_{n}\\| \alpha_{1}, \hdots, \alpha_{n} \in R\}$.
 So we build a \textbf{orthogonal basis} (not orthonormal) $c_{i}, \hdots, c_{k}$, where necessarily $c_{i}^{T}c_{j} = 0  \forall i \neq j$. In our algorithm, we have that $r_{i}^{T}r_{k} = d_{i}^{T}Ad_{k} = 0 \forall i > k$, and $r_{k}^{T}r_{k} \neq 0$ because they are not orthonormal (but if we want, we can rescale it and made them orthonormal). The $r_{i}$ are orthogonal, while the $d_{i}$ are A-orthonormal.
 So in CG, at each iteration, we compute $x_{k}$ s.t. $v^{T}r_{K} = 0 \forall$ vectors in $K_{k}(A, b) = span(r_{0}, r_{1}, \hdots, r_{k-1})$ in a way that $r_{i}^{T}r_{k} = 0 i < k \iff Q_{k}^{T}(b - Ax_{k}) = 0$, because columns of $Q_{k}$ are $q_{k} = \frac{r_{k}}{\|r_{k}\|}$
+The convergence of the Conjugate Gradient Method depends on the maximum eigenvalue $\lambda_{max}$ and the minimum eigenvalue $\lambda_{min}$, and CG converges with rate 
+\\$\|x-x_{k}\| \leq \left\lVert\frac{\sqrt{\lambda_{max}}-\sqrt{\lambda_{min}}}{\sqrt{\lambda_{max}}+\sqrt{\lambda_{min}}}\right\rVert^{k} \leq \|x - x_{0}\|$
 \section{Input data}
 Our input data is the matrix A, which is the tall thin matrx used as input in the \textit{ML-cup} competition. Its shape is $(1765, 23)$, we have to add few functions of our choice of the features of the dataset, and we decided to add the following functions:
 \begin{itemize}
@@ -144,4 +163,5 @@ Our input data is the matrix A, which is the tall thin matrx used as input in th
 	\item product of column 2, 3, 4
 	\item fifth column to square
 \end{itemize}
+
 \end{document}

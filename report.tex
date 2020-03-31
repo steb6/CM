@@ -43,16 +43,18 @@ where
 and so which is the closest vector to $b$ inside the hyperplane $Im(A)$.
 
 \subsection{QR factorization with Householder Reflectors}
-Every $A \in \mathds{R}^{m \times n}$ can be written as $A = QR$, where $Q \in \mathds{R}^{m \times m}$ orthogonal, $R \in \mathds{R}^{m \times n}$ upper traingular ($i > j \Rightarrow A_{ij} = 0$).
+Every matrix $A \in \mathds{R}^{m \times n}$ can be written as $A = QR$, where $Q \in \mathds{R}^{m \times m}$ is orthogonal and $R \in \mathds{R}^{m \times n}$ is upper traingular (i.e. $i > j \Rightarrow R_{ij} = 0$).
 To obtain this form of factorization, we use the \textit{Householder reflectors}.
 \textit{Househoulder reflectors} (written as $H$) have the form $H = I - \frac{2}{u^{T}u}uu^{T}$.
 $H$ can also be written as $I - 2vv^{T}$ where $v = \frac{u}{\|u\|}$.
 $H$ is a matrix that if multiplied with a vector perform a symmetry w.r.t. the plane orthogonal to $u$.
 By setting this $u=x-y$, we are projecting $x$ in $y$, and if $y$ has the form $e_{1}\|x\|$ (because $H$ is orthogonal and must preserve the norm), we are projecting $x$ in the first coordinate.
-But if $\|x\| \sim x_{1}$, this could lead to \textbf{cancellation problem}, so it is a good pratice to choose the norm of $x$ accordingly with the sign of the first entry, so $+\|x\|$ if $x_{1}$ is negative and $-\|x\|$ if $x_{1}$ is positive.
+But if $\|x\| \sim x_{1}$, this could lead to \textbf{cancellation problem}, so it is a good pratice to choose the norm of $x$ accordingly with the sign of the first entry, so $+\|x\|$ if $x_{1}$ is negative and $-\|x\|$ if $x_{1}$ is positive, as shown in Algorithm 1.
 We also have a way to perform \textbf{fast product Househoulder-vector} by re-arranging parenthesis: we can rewrite $Hx = (I - 2vv^{T})x = x - 2v(v^{T}x)$ to reduce the computational complexity from $O(m^2)$ to $O(m)$.
-\\We can make some improvement to this algorithm (which has a computational complexity of $O(n^4)$ because of the two matrix-matrix multiplication in lines 8 and 9), expecially using \textbf{fast product Householder-vector} in line 8 and in line 9: in this way we don't have anymore a matrix-matrix multiplication (which cost is $O(m^3)$), but we have a vector-matrix multiplication, a vector-vector multiplication and a subtraction between two matrices, and all these operation have a computational complexity of $O(m^2)$. So, to upgrade the matrix $A$ like in line 8, we use this property, and we can also put manually the zeros in the right place and if the matrix is square, we can stop the algorithm 1 step before the full size, because last iteration can only change the sign of last entry. So a more efficent variant of the algorithm is this:
-\\There is still a last improvement that we can make, and it is blocking: this algorithm is not efficent in general becasuse it makes a lot of matrix-vector multiplication, for example in line 9. We could accumulate this $v$ vectors and multipling them together, in this way we have the same number of operations, but on a computer this way is more efficent because computer manages well block operation.
+
+Algorithm 2 give us the QR factorization of the matrix $A$ using the \textit{Househoulder reflectors}. In this Algorithm we use some techniques that allow us to have a more efficient implementation than the trivial one. In particular, we exploit \textbf{fast product Householder-vector} to upgrade matrix $A$ in order to avoid matrix-matrix multiplications. Moreover, we put manually the zeros in the right place and if the matrix is square we can stop the algorithm one step before the full size, because last iteration can only change the sign of last entry. Finally, instead of perform a lot of matrix-vector multiplication we accumulate this vector multipling them toghether. In this way we have the same number of operations, but on a computer this way is more efficient because computer manages well block operations.
+%\\We can make some improvement to this algorithm (which has a computational complexity of $O(n^4)$ because of the two matrix-matrix multiplication in lines 8 and 9), expecially using \textbf{fast product Householder-vector} in line 8 and in line 9: in this way we don't have anymore a matrix-matrix multiplication (which cost is $O(m^3)$), but we have a vector-matrix multiplication, a vector-vector multiplication and a subtraction between two matrices, and all these operation have a computational complexity of $O(m^2)$. So, to upgrade the matrix $A$ like in line 8, we use this property, and we can also put manually the zeros in the right place and if the matrix is square, we can stop the algorithm 1 step before the full size, because last iteration can only change the sign of last entry. So a more efficent variant of the algorithm is this:
+%\\There is still a last improvement that we can make, and it is blocking: this algorithm is not efficent in general becasuse it makes a lot of matrix-vector multiplication, for example in line 9. We could accumulate this $v$ vectors and multipling them together, in this way we have the same number of operations, but on a computer this way is more efficent because computer manages well block operation.
 % Pseudocode final algorithm %
 \makeatletter
 \def\BState{\State\hskip-\ALG@thistlm}
@@ -60,7 +62,7 @@ We also have a way to perform \textbf{fast product Househoulder-vector} by re-ar
 \begin{algorithm}
 \caption{Householder Reflectors}\label{euclid}
 \begin{algorithmic}[1]
-\Function{$[v, s] \gets householder\_vector(A)$}{}
+\Function{$[v, s] \gets householder\_vector(x)$}{}
 \State $\textit{s} \gets \textit{--sign(x[0]) * norm(x)}$
 \State $\textit{v} \gets \textit{x}$
 \State $\textit{v[0]} \gets \textit{$v[0] - s$}$
@@ -110,9 +112,11 @@ so our problem can be summarized as
 $\|Ax - b\| =
 \left\lVert \begin{bmatrix} R_{1}x - Q_{1}^{T}b \\ Q_{2}^{T}b\end{bmatrix} \right\lVert$
 and now I can chose $x$ s.t. $R_{1}x - Q_{1}^{T}b = 0$ (just take $x = R_{1}^{-1}Q_{1}^{T}b$ if $R_{1}$ is invertible), and in this way we have $\min_{x \in  \mathds{R}^n}\|Ax - b\| = \|Q_{2}^{T}b\|$ and $x  = \arg\!\min_{x \in  \mathds{R}^n}\|Ax - b\| = x = R_{1}^{-1}Q_{1}^{T}b$.
-How many solution?\\
-$\min_{x \in  \mathds{R}^n}\|Ax - b\|$ has a unique solution $\iff A$ has full column rank $\iff A^{T}A \succ 0 \iff$ 0 is not an eigenvalue of $A^{T}A \iff A^{T}A$ is invertible. We can add $[\iff R_{1}$ is invertible$]$ because $A^{T}A = (QR)^{T}QR = R^{T}Q^{T}QR = R^{T}R = \begin{bmatrix} R_{1} \\ 0 \end{bmatrix}^{T} \begin{bmatrix} R_{1} \\ 0 \end{bmatrix} = \begin{bmatrix} R_{1}^{T} & 0 \end{bmatrix} \begin{bmatrix} R_{1} \\ 0 \end{bmatrix} = R_{1}^{T}R_{1}$.
-\\ $A^{T}A = R_{1}^{T}R_{1}$, $A^{T}A$ is a square matrix that is the product of the two square matrices $R_{1}^{T}$ and $R_{1}$, so $A^{T}A$ is invertible $\iff$ both $R_{1}$ and $R_{1}^{T}$ are invertible: this can be seen looking at the determinant $[ det(A^{T}A) = det(R_{1}^{T}) det(R_{1}) ]$.
+%How many solution?\\
+
+How many solutions do we have? We know that $\min_{x \in  \mathds{R}^n}\|Ax - b\|$ has a unique solution $\iff A$ has full column rank $\iff A^{T}A \succ 0 \iff$ 0 is not an eigenvalue of $A^{T}A \iff A^{T}A$ is invertible. 
+
+We can add $[\iff R_{1}$ is invertible$]$ because $A^{T}A = (QR)^{T}QR = R^{T}Q^{T}QR = R^{T}R = \begin{bmatrix} R_{1} \\ 0 \end{bmatrix}^{T} \begin{bmatrix} R_{1} \\ 0 \end{bmatrix} = \begin{bmatrix} R_{1}^{T} & 0 \end{bmatrix} \begin{bmatrix} R_{1} \\ 0 \end{bmatrix} = R_{1}^{T}R_{1}$ and, since $A^{T}A$ is a square matrix that is the product of the two square matrices $R_{1}^{T}$ and $R_{1}$, then $A^{T}A$ is invertible $\iff$ both $R_{1}$ and $R_{1}^{T}$ are invertible (this can be seen looking at the determinant $[ det(A^{T}A) = det(R_{1}^{T}) det(R_{1}) ]$).
 Finally, we got $A^{T}A = R_{1}^{T}R_{1}$ is invertible $\iff R_{1}$ is invertible. We can easily check if $R_{1}$ is invertible because it is upper triangular, so we just look at its elements on the diagonal: if they are all $\neq 0$, it is invertible.
 
 % Conjugate gradiend method %

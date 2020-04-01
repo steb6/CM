@@ -3,15 +3,16 @@ import numpy as np
 from utils import norm
 from data_manager import read_data
 import time
-from conjugate_gradient import conjugate_gradient
+import matplotlib.pyplot as plt
 
-functions = [qr_factorization1, qr_factorization2, qr_factorization3]
+functions = [np.linalg.qr, qr_factorization1, qr_factorization2, qr_factorization3]
 
 A, b = read_data('data/ML-CUP19-TR.csv')
 m, n = A.shape
-# x = conjugate_gradient(A, b)
 
 for i, qr_factorization in enumerate(functions):
+    print("**********************************************")
+    print(qr_factorization.__name__)
     start = time.monotonic_ns()
     Q, R = qr_factorization(A)
     done = time.monotonic_ns()
@@ -27,4 +28,26 @@ for i, qr_factorization in enumerate(functions):
     print("||A - QR|| =", norm(A - np.matmul(Q1, R1)))
     print("||Ax - b|| =", norm(np.matmul(A, x) - b))
 
+# Check if computational cost scale with m
+print("Factorizing for various m...")
+times = []
+sizes = range(n, m, 100)
+for k in sizes:
+    print(k/m)
+    A_ = A[:k, :]
+    b_ = b[:k, :]
+    start = time.monotonic_ns()
+    Q, R = qr_factorization(A_)
+    done = time.monotonic_ns()
+    elapsed = done - start
+    times.append(elapsed)
 
+# Creating plot
+print("Creating plot...")
+plt.plot(sizes, times)
+plt.ylabel("Time for QR factorization")
+plt.xlabel("Largest dimension of A")
+plt.show()
+
+'''
+Come faccio a controllare che scali con m se è O(n^2*m)'''

@@ -29,13 +29,13 @@ for i, qr_factorization in enumerate(functions):
     print("||Ax - b|| =", norm(np.matmul(A, x) - b))
 
 # Check if computational cost scale with m
+print("**********************************************************")
 print("Factorizing for various m...")
 times = []
 sizes = range(n, m, 100)
 for k in sizes:
     print(k/m)
     A_ = A[:k, :]
-    b_ = b[:k, :]
     start = time.monotonic_ns()
     Q, R = qr_factorization(A_)
     done = time.monotonic_ns()
@@ -49,5 +49,26 @@ plt.ylabel("Time for QR factorization")
 plt.xlabel("Largest dimension of A")
 plt.show()
 
-'''
-Come faccio a controllare che scali con m se è O(n^2*m)'''
+
+# Now with m>>n
+print("**********************************************************")
+print("m>>n: Factorizing for various m...")
+times = []
+n = 10
+m = 10000
+sizes = range(n, m, 1000)
+for k in sizes:
+    print(k/m)
+    A_ = np.random.rand(k, n)
+    start = time.monotonic_ns()
+    Q, R = qr_factorization3(A_)
+    done = time.monotonic_ns()
+    elapsed = done - start
+    times.append(elapsed)
+
+# Creating plot
+print("Creating plot...")
+plt.plot(sizes, times)
+plt.ylabel("Time for QR factorization")
+plt.xlabel("Largest dimension of A")
+plt.show()

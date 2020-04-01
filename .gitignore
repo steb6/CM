@@ -134,3 +134,4 @@ report.dvi
 report.log
 report.synctex.gz
 theory.tex
+prove.py

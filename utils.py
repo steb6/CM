@@ -14,3 +14,7 @@ def column_to_row(x):
     y = np.copy(x)
     y.shape = (1, y.shape[0])
     return y
+
+
+def transpose_matrix(x):
+    return np.transpose(x)

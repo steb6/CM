@@ -1,6 +1,7 @@
 from qr_householder import qr_factorization1, qr_factorization2, qr_factorization3
 import numpy as np
-from utils import norm
+#from utils import norm
+from numpy.linalg import norm
 from data_manager import read_data
 import time
 import matplotlib.pyplot as plt

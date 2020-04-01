@@ -27,7 +27,9 @@ for i, qr_factorization in enumerate(functions):
     print("QR Factorization n° {} ended".format(i+1))
     print("ns spent: ", elapsed)
     print("||A - QR|| =", norm(A - np.matmul(Q1, R1)))
+    print("||A - QR||/||A||", np.divide(norm(A - np.matmul(Q1, R1)), norm(A)))
     print("||Ax - b|| =", norm(np.matmul(A, x) - b))
+    print("||Ax - b||/||b|| =", np.divide(norm(np.matmul(A, x) - b), norm(b)))
 
 # Check if computational cost scale with m
 print("**********************************************************")
@@ -50,6 +52,7 @@ plt.ylabel("Time for QR factorization")
 plt.xlabel("Largest dimension of A")
 plt.show()
 
+exit()
 
 # Now with m>>n
 print("**********************************************************")

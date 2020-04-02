@@ -11,5 +11,4 @@ functions = [qr_factorization1, qr_factorization2, qr_factorization3]
 
 A, b = read_data('data/ML-CUP19-TR.csv')
 m, n = A.shape
-b = b[:, 0]
-x = cg(A, b)
+x = conjugate_gradient(A, b)

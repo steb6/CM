@@ -13,7 +13,7 @@ def read_data(filename):
     # Remove indexes
     A = np.delete(A, 0, 1)
     y = A.shape[1]
-    b = A[:, y-1:y]
+    b = A[:, y-1]
     A = np.delete(A, np.s_[y-2, y], axis=1)
 
     # Print new dimensions

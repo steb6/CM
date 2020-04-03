@@ -40,6 +40,10 @@ for i, qr_factorization in enumerate(functions):
     print("||Ax - b|| =", norm(np.matmul(A, x) - b))
     print("||Ax - b||/||b|| =", np.divide(norm(np.matmul(A, x) - b), norm(b)))
     print("Conditioning angle: ", conditioning_angle(A, b, x))
+    # Provo con il problema perturbato, per vedere se è un algoritmo stabile (lo è)
+    #delta = np.random.rand(b.shape[0], 1)
+    #delta = np.array(map(lambda x_: 1 if x_ < 0.5 else -1, delta))
+    #btilde = b + np.random.randint(-np.finfo(float).eps, np.finfo(float), b.shape, float)
 
 # Check if computational cost scale with m
 print("**********************************************************")

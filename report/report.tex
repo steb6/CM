@@ -3,13 +3,18 @@
 \usepackage{algorithm}
 \usepackage[noend]{algpseudocode}
 \usepackage{ dsfont }
+\usepackage{amssymb}
+\usepackage{setspace}
+
+% Questa linea raddoppia lo spazio tra una riga e l'altra per tutto il documento %
+\doublespacing
 
 \begin{document}
 % Abstract %
 \thispagestyle{plain}
 \begin{center}
     \Large
-    \textbf{Computational Matehmatics for Learning and Data Analysis}
+    \textbf{Computational Mathematics for Learning and Data Analysis}
         
     \vspace{0.4cm}
     \large
@@ -19,157 +24,61 @@
     \textbf{Poggiali Alessandro, Berti Stefano}
        
     \vspace{0.9cm}
-    \textbf{Abstract}
 \end{center}
-\textbf{(P)} is the linear least squares problem
-\\\centerline{$\min_{x \in \mathds{R}^n}\|\hat{A}x-b\|$}
-\\where $\hat{A}$ is the matrix obtained by augmenting the (tall thin) matrix $A$ from the ML-cup dataset by prof. Micheli with a few functions of your choice of the features of the dataset, and $b$ is one of the corresponding output vectors. For instance, if $A$ contains columns $[a1, a2]$, you may add functions such as $log(a1), a1^{2}, a1*a2, \hdots$
-\\\textbf{(A1)} is an algorithm of che class of Conjugate Gradient methods [references: J. Nocedal, S. Wright, Numerical Optimization].
-\\\textbf{(A2)} is thin QR factorization with Householder reflectors [Trefethen, Bau, Numerical Linear Algebra, Lecture 10], in the variant where one does not form the matrix $Q$, but stores the Householder vectors $u_{k}$ and uses them to perform (implicitly) products with $Q$ and $Q^{T}$.
-\\No off-the-shelf solvers allowed. In particular you must implement yourself the thin QR factorization, and the computational cost of your implementation should scale linearly with the largest dimension of the matrix $A$.
 
 % Setting the stage %
-\section{Setting the stage}
+\section{Setting the stage}\label{sec:setting-the-stage}
 
-\subsection{Linear Square Problem}
-Our problem is: how close can we get to \\\\
+\subsection{The problem: Least Square}\label{subsec:linear-square-problem}
+Our problem is to find an array x such that \\\\
 \centerline{$\min_{x \in \mathds{R}^n}\|Ax-b\|$} \\\\
-where
+holds, where
 \begin{itemize}
-	\item $A$ is a \textit{tall thin matrix} (so it is a matrix of the form $A\in M(m, n, R)$ where $m \gg n$)
+	\item $A$ is a \textit{tall thin matrix} (so it is a matrix $A\in M(m, n, R)$ where $m \gg n$)
 	\item $b$ is a vector of real number
 	\item $\|.\|$ is the \textit{2-norm} or \textit{Euclidean Norm}: $\|x\| := \sqrt{\sum_{i=1}^n x_i}$
 \end{itemize}
-and so which is the closest vector to $b$ inside the hyperplane $Im(A)$.
-
-\subsection{QR factorization with Householder Reflectors}
-Every matrix $A \in \mathds{R}^{m \times n}$ can be written as $A = QR$, where $Q \in \mathds{R}^{m \times m}$ is orthogonal and $R \in \mathds{R}^{m \times n}$ is upper traingular (i.e. $i > j \Rightarrow R_{ij} = 0$).
-To obtain this form of factorization, we use the \textit{Householder reflectors}.
-\textit{Househoulder reflectors} (written as $H$) have the form $H = I - \frac{2}{u^{T}u}uu^{T}$.
-$H$ can also be written as $I - 2vv^{T}$ where $v = \frac{u}{\|u\|}$.
-$H$ is a matrix that if multiplied with a vector perform a symmetry w.r.t. the plane orthogonal to $u$.
-By setting this $u=x-y$, we are projecting $x$ in $y$, and if $y$ has the form $e_{1}\|x\|$ (because $H$ is orthogonal and must preserve the norm), we are projecting $x$ in the first coordinate.
-But if $\|x\| \sim x_{1}$, this could lead to \textbf{cancellation problem}, so it is a good pratice to choose the norm of $x$ accordingly with the sign of the first entry, so $+\|x\|$ if $x_{1}$ is negative and $-\|x\|$ if $x_{1}$ is positive, as shown in Algorithm 1.
-We also have a way to perform \textbf{fast product Househoulder-vector} by re-arranging parenthesis: we can rewrite $Hx = (I - 2vv^{T})x = x - 2v(v^{T}x)$ to reduce the computational complexity from $O(m^2)$ to $O(m)$.
-
-Algorithm 2 give us the QR factorization of the matrix $A$ using the \textit{Househoulder reflectors}. In this Algorithm we use some techniques that allow us to have a more efficient implementation than the trivial one. In particular, we exploit \textbf{fast product Householder-vector} to upgrade matrix $A$ in order to avoid matrix-matrix multiplications. Moreover, we put manually the zeros in the right place and if the matrix is square we can stop the algorithm one step before the full size, because last iteration can only change the sign of last entry. Finally, instead of perform a lot of matrix-vector multiplication we accumulate this vector multipling them toghether. In this way we have the same number of operations, but on a computer this way is more efficient because computer manages well block operations.
-%\\We can make some improvement to this algorithm (which has a computational complexity of $O(n^4)$ because of the two matrix-matrix multiplication in lines 8 and 9), expecially using \textbf{fast product Householder-vector} in line 8 and in line 9: in this way we don't have anymore a matrix-matrix multiplication (which cost is $O(m^3)$), but we have a vector-matrix multiplication, a vector-vector multiplication and a subtraction between two matrices, and all these operation have a computational complexity of $O(m^2)$. So, to upgrade the matrix $A$ like in line 8, we use this property, and we can also put manually the zeros in the right place and if the matrix is square, we can stop the algorithm 1 step before the full size, because last iteration can only change the sign of last entry. So a more efficent variant of the algorithm is this:
-%\\There is still a last improvement that we can make, and it is blocking: this algorithm is not efficent in general becasuse it makes a lot of matrix-vector multiplication, for example in line 9. We could accumulate this $v$ vectors and multipling them together, in this way we have the same number of operations, but on a computer this way is more efficent because computer manages well block operation.
-% Pseudocode final algorithm %
-\makeatletter
-\def\BState{\State\hskip-\ALG@thistlm}
-\makeatother
-\begin{algorithm}
-\caption{Householder Reflectors}\label{euclid}
-\begin{algorithmic}[1]
-\Function{$[v, s] \gets householder\_vector(x)$}{}
-\State $\textit{s} \gets \textit{--sign(x[0]) * norm(x)}$
-\State $\textit{v} \gets \textit{x}$
-\State $\textit{v[0]} \gets \textit{$v[0] - s$}$
-\State $\textit{v} \gets \textit{$v / norm(v)$}$
-\EndFunction
-\end{algorithmic}
-\end{algorithm}
-% Pseudocode %
-% Pseudocode final algorithm %
-\makeatletter
-\def\BState{\State\hskip-\ALG@thistlm}
-\makeatother
-\begin{algorithm}
-\caption{QR factorization with Householder Reflectors}\label{euclid}
-\begin{algorithmic}[1]
-\Function{$[Q, R] \gets myqr(A)$}{}
-\BState \emph{top}:
-\State $\textit{[m, n]} \gets \textit{size(A)}$
-\State $\textit{V} \gets \textit{emptyList}$
-\State $\textit{Q} \gets \textit{$I_{m \times m}$}$
-\BState \emph{loop}:
-\State \emph{for j = 1:min(m-1, n)}:
-\State \quad$\textit{[v, s]} \gets \textit{householder-vector(A(j:end, j))}$
-\State \quad$\textit{A(j, j)} \gets \textit{s}$
-\State \quad$\textit{A(j+1:end, j)} \gets \textit{0}$
-\State \quad$\textit{A(j:end, j:end)} \gets \textit{A(J.end, j:end) - 2*v*(v'*A(j:end, j+1:end))}$
-\State \quad$\textit{V} \gets \textit{V.insert(v)}$
-\BState \emph{end}:
-\State $\textit{R = A}$
-\State $\textit{for i = 1:min(m-1, n)}$
-\State \quad$\textit{Q(i:end, i:end) = Q(i:end, i:end)*[$I_{min(m-i, n) - i}$ - 2*$v_{i}*v_{i}^{T}]$}$
-\EndFunction
-\end{algorithmic}
-\end{algorithm}
-% Pseudocode %
-% How to use QR to solve LS %
-\\\\\textbf{How can we use QR to solve LS?}\\
-If $A$ is a \textit{tall thin matrix} ($m \gg n$), we write the matrix $A$ as $QR$, where
-$Q = [Q_1, Q_2]$ and
-$R = \begin{bmatrix}R_{1} \\ 0\end{bmatrix}$ and since orthogonal matrices preserve norms, we can do
-$\|Ax - b\| = \|Q^{T}(Ax-b)\| =
-\|Q^{T}QRx - Q^{T}b\| =
-\|Rx - Q^{T}b\| =
-\left\lVert\begin{bmatrix}R_{1} \\ 0\end{bmatrix}x - \begin{bmatrix}Q_{1}^T \\ Q_{2}^T\end{bmatrix}b\right\rVert =
-\left\lVert\begin{bmatrix}R_{1}x - Q_{1}^{T}b \\ Q_{2}^{T}b\end{bmatrix}\right\rVert$
-so our problem can be summarized as
-$\|Ax - b\| =
-\left\lVert \begin{bmatrix} R_{1}x - Q_{1}^{T}b \\ Q_{2}^{T}b\end{bmatrix} \right\lVert$
-and now I can chose $x$ s.t. $R_{1}x - Q_{1}^{T}b = 0$ (just take $x = R_{1}^{-1}Q_{1}^{T}b$ if $R_{1}$ is invertible), and in this way we have $\min_{x \in  \mathds{R}^n}\|Ax - b\| = \|Q_{2}^{T}b\|$ and $x  = \arg\!\min_{x \in  \mathds{R}^n}\|Ax - b\| = x = R_{1}^{-1}Q_{1}^{T}b$.
-%How many solution?\\
-
-How many solutions do we have? We know that $\min_{x \in  \mathds{R}^n}\|Ax - b\|$ has a unique solution $\iff A$ has full column rank $\iff A^{T}A \succ 0 \iff$ 0 is not an eigenvalue of $A^{T}A \iff A^{T}A$ is invertible. 
-
-We can add $[\iff R_{1}$ is invertible$]$ because $A^{T}A = (QR)^{T}QR = R^{T}Q^{T}QR = R^{T}R = \begin{bmatrix} R_{1} \\ 0 \end{bmatrix}^{T} \begin{bmatrix} R_{1} \\ 0 \end{bmatrix} = \begin{bmatrix} R_{1}^{T} & 0 \end{bmatrix} \begin{bmatrix} R_{1} \\ 0 \end{bmatrix} = R_{1}^{T}R_{1}$ and, since $A^{T}A$ is a square matrix that is the product of the two square matrices $R_{1}^{T}$ and $R_{1}$, then $A^{T}A$ is invertible $\iff$ both $R_{1}$ and $R_{1}^{T}$ are invertible (this can be seen looking at the determinant $[ det(A^{T}A) = det(R_{1}^{T}) det(R_{1}) ]$).
-Finally, we got $A^{T}A = R_{1}^{T}R_{1}$ is invertible $\iff R_{1}$ is invertible. We can easily check if $R_{1}$ is invertible because it is upper triangular, so we just look at its elements on the diagonal: if they are all $\neq 0$, it is invertible.
+and so to find the closest vector to $b$ inside the hyperplane $Im(A)$.
 
 % Conjugate gradiend method %
-\subsection{Conjugate Gradient Method}
-If $A^{T}A$ is positive definite, then we can find a solution to $Ax = b$ by minimizing the (strictly convex) function $f(x) = \frac{1}{2}x^{T}Ax - b^{T}x$ (that is equal to set the gradient $= 0$). Doing \textit{Conjugate gradient} on this problem, can be interpreted as \textit{Krylov subspace method}. We remember that \begin{itemize}
-\item \textbf{A-orthogonal}: $x, y \in R^{m}$ are A-orthogonal if $x^{T}Ay = 0$
-\item \textbf{A-norm}: the A-norm of $x \in R^{m}$ is $\|x\|_{A} := (x^{t}Ax)^{\frac{1}{2}}$. Note that if A is \textit{positive definite}, then the A-norm is $\geq 0$ (it is $0$ only for the $0$ vector)
-\end{itemize}
-For conjugate gradient, we use three ingredients: the current interate $x_{k}$, the residual $r_{k} = b - Ax_{k} = -\Delta f(x_{k})$ and the search direction $d_{k}$.
-% Pseudocode CG %
-\makeatletter
-\def\BState{\State\hskip-\ALG@thistlm}
-\makeatother
-\begin{algorithm}
-\caption{Conjugate Gradient}\label{euclid}
-\begin{algorithmic}[1]
-\Function{$x^{*} \gets mycg(A, b)$}{}
-\BState \emph{top}:
-\State $x_{0} \gets 0$
-\State $r_{0} \gets d_{0} \gets b$
-\BState \emph{loop}:
-\State \emph{for k = 1:n}
-\State \quad$\alpha_{k} = (r_{k-1}^{T}r_{k-1})/(d_{k-1}^{T}Ad_{k-1})$
-\State \quad$x_{k} = x_{k-1} + \alpha_{k}Ad_{k-1}$
-\State \quad$\beta_{k} = (r_{k}^{T}r_{k})/(r_{k-1}^{T}r_{k-1})$
-\State \quad$d_{k} = r_{k} + \beta_{k}d_{k-1}$
-\BState \emph{end}:
-\State $x_{*} = x_{k}$
-\EndFunction
-\end{algorithmic}
-\end{algorithm}
-% Pseudocode %
-\\Initially, to keep things simple, we choose as our first direction the prior $b$, because we start with $x_{0} = 0$. At each iteration, we need to chose $\alpha_{k}$, that is our step length, in such a way that it minimizes the residual along the search direction. Then we can update our $x_{k}$ and, consequently, the residual $r_{k}$. To update the residual, we use the fact that $b - Ax_{k} = [x_{k} = x_{k-1} + \alpha_{k}d_{k-1}] = b - A(x_{k-1} + \alpha_{k}d_{k-1}) = [b-Ax_{k-1} = r_{k-1}] = r_{k-1} - \alpha_{k}Ad_{k-1}$. The trick about conjugate gradient is that at each step we generate a new search direction, which is not exactly the residual, but is the residual modified to be A-orthogonal to the previous search direction. In this way, $\beta_{k}$ is a scalar that is chosen s.t. $d_{k}$ is A-orthogonal to $d_{k-1}$ $(d_{k-1}Ad_{k} = 0)$. 
+\subsection{First algorithm: Conjugate Gradient Method}\label{subsec:conjugate-gradient-method}
 
-\section{What to expect from the algorithms}
+\subsection{Second algorithm: QR factorization with Householder Reflectors}\label{subsec:qr-factorization-with-householder-reflectors}
+To solve the Least Square Problem, we use the \textit{thin QR factorization} with all the optimization seen (fast Householder-vector product, cancellation problem resolution, manually changing known entries) in order to factorize $A$ as $Q_{1}R_{1}$.
+We use a variant of the \textit{thin QR factorization} where we do not form the matrix $Q$, but we keep the Householder vector $u_{k}$ to perform implicit product with $Q$ and $Q^{T}$.
+With this factorization, we can write $\|Ax - b\|$ as $\left\lVert \begin{bmatrix} R_{1}x - Q_{1}^{T}b \\ Q_{2}^{T}b\end{bmatrix} \right\lVert$
+and now we can chose $x$ such that $R_{1}x - Q_{1}^{T}b = 0$, which is $x = R_{1}^{-1}Q_{1}^{T}b$ (if $R_{1}$ is invertible).
+Finally we should have $x  = \arg\!\min_{x \in  \mathds{R}^n}\|Ax - b\| = R_{1}^{-1}Q_{1}^{T}b$ and $\|Ax - b\| = \|Q_{2}^{T}b\|$.
 
-\subsection{QR with HouseHolder}
-We know that this algorithm is bandwith heavy and not parallelizable, as every reflection that produces a new zero element changes the entirety of both Q and R matrices.
+
+\section{What to expect from the algorithms}\label{sec:what-to-expect-from-the-algorithms}
+
+\subsection{Conjugate Gradient}\label{subsec:conjugate-gradient}
+
+\subsection{QR with HouseHolder}\label{subsec:qr-with-householder}
+The QR factorization has a cancellation problem during the Householder reflector construction that is easily fixed by summing first entry and norm instead of subtract it.
+% Apart for this problem, the factorization algorithm is \textit{backward stable}, because, at each step, every $\tilde{R_{k}}$, $\tilde{u_{k}}$ are the exact result that we would get if we started from $R_{k-1} + \Delta R_{K-1}$ with $\left\lVert \Delta R_{k-1} \right\rVert = O(u) \left\lVert R_{k-1} \right\rVert$
+\\Apart from that, since every step is \textit{backward stable}, the factorization algorithm is \textit{backward stable}: the computed $Q$, $R$ are the exact result of $qr(A + \Delta A)$ where $ \left\lVert \Delta A \right\rVert \leq O(u)\left\lVert A \right\rVert$, so we only have intrinsic representation errors.
+% We know that this algorithm is bandwith heavy and not parallelizable, as every reflection that produces a new zero element changes the entirety of both Q and R matrices.
 % Modification of the algorithm %
-We are going to use a variant of the QR factorization, in which we do not form the matrix Q, but we store the Householder vectors $u_k$ and we use them to perform the implicit product with $Q$ and $Q^T$, in this way we need just to store those vectors which size is $O(mn)$ instead of $O(m^2)$ and if $m \gg n$, this has a big impact: this could lead to have a cost for thin QR equal to $O(mn^2)$, so it scales lineary with the largest dimension of the matrix and quadratically with the other one. The computational cost for thin QR factorization is $2mn^2 - \frac{2}{3}n^3 + O(mn)$ that represents the two cases: if $m = n$, we have that the cost is $\frac{4}{3}n^3$, if $m \gg n$ the cost scales like $2mn^2$. LU/Gaussian elimination has computational cost of $\frac{2}{3}n^3$.
-\subsection{Conjugate Gradient}
-We don't need to remember the history of each step, we just need to work on three variables $x, r$ and $d$. The cost is $n$ matrix-vector products (for $Ad_{k-1}$, that appears two times, but we can compute it and store it) plus $O(nm)$, which is the same cost for Krylov method for asymmetric matrices. In fact, this algorithm is Krylov type algorithm.
-A \textbf{Krylov subspace} of dimension $k$ $K_{k}(A, b)$ is the span made of our iterations, and this is s.t. $K_{k}(A, b) = span(x_{1}, x_{2}, \hdots, x_{k}) = span(d_{0}, d_{1}, \hdots, d_{k-1}) = span(r_{0}, r_{1}, \hdots, r_{k-1})$ where $span(v_{1}, \hdots, v_{n}) := \{\alpha_{1}v_{1} + \hdots + \alpha_{n}v_{n} \,|\, \alpha_{1}, \hdots, \alpha_{n} \in \mathds{R}\}$.
-So we build a \textbf{orthogonal basis} (not orthonormal) $c_{i}, \hdots, c_{k}$, where necessarily $c_{i}^{T}c_{j} = 0$ $\forall i \neq j$. In our algorithm, we have that $r_{i}^{T}r_{k} = d_{i}^{T}Ad_{k} = 0$ $\forall i > k$, and $r_{k}^{T}r_{k} \neq 0$ because they are not orthonormal (but if we want, we can rescale it and made them orthonormal). The $r_{i}$ are orthogonal, while the $d_{i}$ are A-orthonormal.
-So in CG, at each iteration, we compute $x_{k}$ s.t. $v^{T}r_{K} = 0$ $\forall$ vectors in $K_{k}(A, b) = span(r_{0}, r_{1}, \hdots, r_{k-1})$ in a way that $r_{i}^{T}r_{k} = 0$ $i < k \iff Q_{k}^{T}(b - Ax_{k}) = 0$, because columns of $Q_{k}$ are $q_{k} = \frac{r_{k}}{\|r_{k}\|}$
-The convergence of the Conjugate Gradient Method depends on the maximum eigenvalue $\lambda_{max}$ and the minimum eigenvalue $\lambda_{min}$, and CG converges with rate 
-\\$\|x-x_{k}\| \leq \left\lVert\frac{\sqrt{\lambda_{max}}-\sqrt{\lambda_{min}}}{\sqrt{\lambda_{max}}+\sqrt{\lambda_{min}}}\right\rVert^{k} \leq \|x - x_{0}\|$
-\section{Input data}
-Our input data is the matrix A, which is the tall thin matrx used as input in the \textit{ML-cup} competition. Its shape is $(1765, 23)$, we have to add few functions of our choice of the features of the dataset, and we decided to add the following functions:
-\begin{itemize}
-	\item logarithm of the absolute value of the first column
-	\item product of column 2, 3, 4
-	\item fifth column to square
-\end{itemize}
+\\The computational cost for thin QR factorization is $2mn^2 - \frac{2}{3}n^3 + O(mn)$ flops, which represents two cases: if $m \approx n$, we have that the cost is $\frac{4}{3}n^3$, if $m \gg n$ the cost scales like $2mn^2$, so it scales linearly with respect to the biggest dimension of A .
+% As a comparision, LU/Gaussian elimination has computational cost of $\frac{2}{3}n^3$, but it is not a \textit{backward stable} algorithm.
+\\Before we said that $x = R_{1}^{-1}Q_{1}^{T}b$, but to be able to calculate it we need $R_{1}$ to be invertible.
+\\We know that $A$ has full column rank $\iff Az \neq 0 \forall z \neq 0 \iff z^{T}A^{T}Az = \left\lVert Az \right\rVert^{2} \forall z \neq 0 \iff A^{T}A$ is positive definite $\iff$ all eigenvalues of $A^{T}A$ are $> 0\iff $0 is not an eigenvalue of $A^{T}A \iff A^{T}A = (Q_{1}R_{1})^{T}Q_{1}R_{1} = R_{1}^{T}Q_{1}^{T}Q_{1}R_{1} = R_{1}^{T}R_{1}$ is invertible $\iff det(A^{T}A) = det(R_{1}^{T})det(R_{1}) \neq 0 \iff det(R_{1}) \neq 0 \iff R_{1}$ is invertible.
+\\So if $A$ has full column rank, $\min_{x \in \mathds{R}^n}\|Ax-b\|$ has solution and it is unique.
+\\$R_{1}$ is invertible also if all elements on its diagonal are $\neq 0$.
 
+%If $A$ has full column rank,
+%and $R_{1}$ is invertible $\iff A^{T}A = (Q_{1}R_{1})^{T}Q_{1}R_{1} = R_{1}^{T}Q_{1}^{T}Q_{1}R_{1} = R_{1}^{T}R_{1} \iff A^{T}A$ is positive definite $\iff$ A has full column rank.
+The cost to solve $x = R_{1}^{-1}(Q_{1}^{T})b$ is a multiplication $c = (Q_{1}^{T})b$, which costs $O(mn)$, and the resolution of the triangular system $R_{1}x = c$ with back-substitution, which costs $O(n^{2})$, but the overall cost $O(mn) + O(n^{2})$ is negligible with respect to the cost $O(mn^{2})$ to compute $Q_{1}, R_{1}$.
+
+\section{Input data}\label{sec:input-data}
+Our input data is the matrix A, which is the tall thin matrix used as input in the \textit{ML-cup 2019-2020} competition.
+Its shape is $(1765, 20)$, we augmented it with few functions of the features of the dataset:
+\begin{itemize}
+	\item \textbf{24\textsuperscript{th} column}: logarithm of the absolute value of the 1\textsuperscript{st} column
+	\item \textbf{25\textsuperscript{th} column}: product of 2\textsuperscript{nd}, 3\textsuperscript{rd} and 4\textsuperscript{th} columns
+	\item \textbf{26\textsuperscript{th} column}: 5\textsuperscript{th} column to square
+\end{itemize}
+So the final shape of $A$ is $(1765, 23)$.
 \end{document}

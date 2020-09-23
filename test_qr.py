@@ -7,26 +7,20 @@ import time
 import matplotlib.pyplot as plt
 import tqdm
 from numpy.linalg import lstsq
+from utils import conditioning_angle
 from numpy.linalg import qr
-
+from scipy.linalg import qr
 functions = [np.linalg.qr, qr_factorization3]
 # functions = [qr_factorization3]
 
 A, b = read_data('data/ML-CUP19-TR.csv')
 m, n = A.shape
 
-
-def conditioning_angle(a_, b_, x_):
-    '''
-    if this value is little, we know that the angle between b and Ax is little and so b is close to the ImA, and
-    the problem is well conditioned
-    '''
-    return np.arccos(np.divide(norm(np.matmul(a_, x_)), norm(b_)))
-
-
 for i, qr_factorization in enumerate(functions):
     print("**********************************************")
     print(qr_factorization.__name__)
+    print('Readed {} rows and {} column'.format(A.shape[0], A.shape[1]))
+    print("Rank of A is " + str(np.linalg.matrix_rank(A)))
     start = time.monotonic_ns()
     Q, R = qr_factorization(A)
     done = time.monotonic_ns()
@@ -34,8 +28,9 @@ for i, qr_factorization in enumerate(functions):
     # Calcolo soluzione
     R1 = R[:n, :n]
     Q1 = Q[:, :n]
-    Q1T = np.transpose(Q1)
-    x = np.matmul(np.linalg.inv(R1), np.matmul(Q1T, b))
+    # plt.spy(R1)
+    # plt.show()
+    x = np.matmul(np.linalg.inv(R1), np.matmul(np.transpose(Q1), b))
     # R = np.around(R, decimals=6)
     print("QR Factorization n° {} ended".format(i+1))
     print("ns spent: ", elapsed)
@@ -45,9 +40,9 @@ for i, qr_factorization in enumerate(functions):
     print("||Ax - b||/||b|| =", np.divide(norm(np.matmul(A, x) - b), norm(b)))
     print("Conditioning angle: ", conditioning_angle(A, b, x))
     # Provo con il problema perturbato, per vedere se è un algoritmo stabile (lo è)
-    #delta = np.random.rand(b.shape[0], 1)
-    #delta = np.array(map(lambda x_: 1 if x_ < 0.5 else -1, delta))
-    #btilde = b + np.random.randint(-np.finfo(float).eps, np.finfo(float), b.shape, float)
+    # delta = np.random.rand(b.shape[0], 1)
+    # delta = np.array(map(lambda x_: 1 if x_ < 0.5 else -1, delta))
+    # btilde = b + np.random.randint(-np.finfo(float).eps, np.finfo(float), b.shape, float)
 
 # Check if computational cost scale with m
 #print("**********************************************************")
@@ -70,19 +65,19 @@ for i, qr_factorization in enumerate(functions):
 #plt.xlabel("Largest dimension of A")
 #plt.show()
 
-exit()
+#exit()
 
 # Now with m>>n
 print("**********************************************************")
 print("m>>n: Factorizing for various m...")
 times = []
 n = 5
-m_init = 2000
-m_end = 8000
+m_init = 1000
+m_end = 3000
 m_step = 250
 sizes = range(m_init, m_end, m_step)
 for k in tqdm.tqdm(sizes):
-    #print("Biggest dimension is "+str(k))
+    # print("Biggest dimension is "+str(k))
     A_ = np.random.rand(k, n)
     start = time.monotonic_ns()
     Q, R = qr_factorization3(A_)

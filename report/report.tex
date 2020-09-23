@@ -15,14 +15,14 @@
 \begin{center}
     \Large
     \textbf{Computational Mathematics for Learning and Data Analysis}
-        
+
     \vspace{0.4cm}
     \large
     2019 / 2020
-        
+
     \vspace{0.4cm}
     \textbf{Poggiali Alessandro, Berti Stefano}
-       
+
     \vspace{0.9cm}
 \end{center}
 
@@ -57,28 +57,28 @@ Finally we should have $x  = \arg\!\min_{x \in  \mathds{R}^n}\|Ax - b\| = R_{1}^
 
 \subsection{QR with HouseHolder}\label{subsec:qr-with-householder}
 The QR factorization has a cancellation problem during the Householder reflector construction that is easily fixed by summing first entry and norm instead of subtract it.
-% Apart for this problem, the factorization algorithm is \textit{backward stable}, because, at each step, every $\tilde{R_{k}}$, $\tilde{u_{k}}$ are the exact result that we would get if we started from $R_{k-1} + \Delta R_{K-1}$ with $\left\lVert \Delta R_{k-1} \right\rVert = O(u) \left\lVert R_{k-1} \right\rVert$
 \\Apart from that, since every step is \textit{backward stable}, the factorization algorithm is \textit{backward stable}: the computed $Q$, $R$ are the exact result of $qr(A + \Delta A)$ where $ \left\lVert \Delta A \right\rVert \leq O(u)\left\lVert A \right\rVert$, so we only have intrinsic representation errors.
-% We know that this algorithm is bandwith heavy and not parallelizable, as every reflection that produces a new zero element changes the entirety of both Q and R matrices.
-% Modification of the algorithm %
 \\The computational cost for thin QR factorization is $2mn^2 - \frac{2}{3}n^3 + O(mn)$ flops, which represents two cases: if $m \approx n$, we have that the cost is $\frac{4}{3}n^3$, if $m \gg n$ the cost scales like $2mn^2$, so it scales linearly with respect to the biggest dimension of A .
-% As a comparision, LU/Gaussian elimination has computational cost of $\frac{2}{3}n^3$, but it is not a \textit{backward stable} algorithm.
 \\Before we said that $x = R_{1}^{-1}Q_{1}^{T}b$, but to be able to calculate it we need $R_{1}$ to be invertible.
 \\We know that $A$ has full column rank $\iff Az \neq 0 \forall z \neq 0 \iff z^{T}A^{T}Az = \left\lVert Az \right\rVert^{2} \forall z \neq 0 \iff A^{T}A$ is positive definite $\iff$ all eigenvalues of $A^{T}A$ are $> 0\iff $0 is not an eigenvalue of $A^{T}A \iff A^{T}A = (Q_{1}R_{1})^{T}Q_{1}R_{1} = R_{1}^{T}Q_{1}^{T}Q_{1}R_{1} = R_{1}^{T}R_{1}$ is invertible $\iff det(A^{T}A) = det(R_{1}^{T})det(R_{1}) \neq 0 \iff det(R_{1}) \neq 0 \iff R_{1}$ is invertible.
 \\So if $A$ has full column rank, $\min_{x \in \mathds{R}^n}\|Ax-b\|$ has solution and it is unique.
 \\$R_{1}$ is invertible also if all elements on its diagonal are $\neq 0$.
-
-%If $A$ has full column rank,
-%and $R_{1}$ is invertible $\iff A^{T}A = (Q_{1}R_{1})^{T}Q_{1}R_{1} = R_{1}^{T}Q_{1}^{T}Q_{1}R_{1} = R_{1}^{T}R_{1} \iff A^{T}A$ is positive definite $\iff$ A has full column rank.
-The cost to solve $x = R_{1}^{-1}(Q_{1}^{T})b$ is a multiplication $c = (Q_{1}^{T})b$, which costs $O(mn)$, and the resolution of the triangular system $R_{1}x = c$ with back-substitution, which costs $O(n^{2})$, but the overall cost $O(mn) + O(n^{2})$ is negligible with respect to the cost $O(mn^{2})$ to compute $Q_{1}, R_{1}$.
+The cost to solve $x = R_{1}^{-1}(Q_{1}^{T})b$ is a multiplication $c = (Q_{1}^{T})b$, which costs $O(mn)$, and the resolution of the triangular system $R_{1}x = c$ with back-substitution, which costs $O(n^{2})$.
+Anyway, the overall cost $O(mn) + O(n^{2})$ is negligible with respect to the cost $O(mn^{2})$ to compute $Q_{1}, R_{1}$.
+This factorization algorithm is bandwidth heavy and not parallelizable, as every reflection that produces a new zero element changes the entirety of both Q and R matrices
 
 \section{Input data}\label{sec:input-data}
-Our input data is the matrix A, which is the tall thin matrix used as input in the \textit{ML-cup 2019-2020} competition.
+Our input data is the matrix A, which is the tall thin matrix used as input in the \textit{ML-cup 2019--2020} competition.
 Its shape is $(1765, 20)$, we augmented it with few functions of the features of the dataset:
 \begin{itemize}
-	\item \textbf{24\textsuperscript{th} column}: logarithm of the absolute value of the 1\textsuperscript{st} column
-	\item \textbf{25\textsuperscript{th} column}: product of 2\textsuperscript{nd}, 3\textsuperscript{rd} and 4\textsuperscript{th} columns
-	\item \textbf{26\textsuperscript{th} column}: 5\textsuperscript{th} column to square
+	\item \textbf{21\textsuperscript{th} column}: logarithm of the absolute value of the 1\textsuperscript{st} column
+	\item \textbf{22\textsuperscript{th} column}: product of 2\textsuperscript{nd}, 3\textsuperscript{rd} and 4\textsuperscript{th} columns
+	\item \textbf{23\textsuperscript{th} column}: 5\textsuperscript{th} column to square
 \end{itemize}
 So the final shape of $A$ is $(1765, 23)$.
+    The condition number of the matrix $A$ (calculated with \textit{numpy.linalg.cond}, which does SVD and $\frac{\sigma_{1}}{\sigma_{n}}$) is $\approx 400000 (4 \times 10^{5})$, while the condition number of a random matrix with the same dimension and same range of values (min and max of the 2 matrices are the same) is $\approx 1.7$.
+    Those values doesn't change with respect to the augmented columns, because the augmented columns are not linear combination of other columns.
+    We can conclude that the matrix $A$ is ill conditioned, so it is almost singular and the solution of our problem could be not accurate.
+    Anyway, we know that the solution of the least square problem exists and it is unique, because $A$ is a full column rank matrix because $rank(A) = n = 23$, where rank is calculated as the number of singular values $> \max(\sigma_{i}) \times max(m, n) \times eps$, which is the same approach used in MATLAB.
+
 \end{document}

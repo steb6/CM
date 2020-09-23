@@ -13,14 +13,25 @@ from scipy.linalg import qr
 functions = [np.linalg.qr, qr_factorization3]
 # functions = [qr_factorization3]
 
-A, b = read_data('data/ML-CUP19-TR.csv')
+
+A, b = read_data('data/ML-CUP19-TR.csv', add_augmented_columns=False)
 m, n = A.shape
 
 for i, qr_factorization in enumerate(functions):
     print("**********************************************")
     print(qr_factorization.__name__)
     print('Readed {} rows and {} column'.format(A.shape[0], A.shape[1]))
+    amin = A.min()
+    amax = A.max()
+    print("min of A: {}, max of A: {}".format(A.min(), A.max()))
     print("Rank of A is " + str(np.linalg.matrix_rank(A)))
+    print("Condition number of matrix A is "+str(np.linalg.cond(A)))
+    check = np.random.rand(A.shape[0], A.shape[1])
+    cmin = check.min()
+    cmax = check.max()
+    check = (((check - cmin) / (cmax - cmin))*(A.max()*100-A.min()*100))+A.min()*100
+    print("min of check: {}, max of check:{}".format(check.min(), check.max()))
+    print("Condition number of random matrix with same dimension of A is "+str(np.linalg.cond(check)))
     start = time.monotonic_ns()
     Q, R = qr_factorization(A)
     done = time.monotonic_ns()

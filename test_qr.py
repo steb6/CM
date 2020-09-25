@@ -29,7 +29,7 @@ for i, qr_factorization in enumerate(functions):
     check = np.random.rand(A.shape[0], A.shape[1])
     cmin = check.min()
     cmax = check.max()
-    check = (((check - cmin) / (cmax - cmin))*(A.max()*100-A.min()*100))+A.min()*100
+    check = (((check - cmin) / (cmax - cmin))*(A.max()-A.min()))+A.min()
     print("min of check: {}, max of check:{}".format(check.min(), check.max()))
     print("Condition number of random matrix with same dimension of A is "+str(np.linalg.cond(check)))
     start = time.monotonic_ns()
@@ -84,14 +84,15 @@ print("m>>n: Factorizing for various m...")
 times = []
 n = 5
 m_init = 1000
-m_end = 3000
-m_step = 250
+m_end = 5000
+m_step = 500
 sizes = range(m_init, m_end, m_step)
 for k in tqdm.tqdm(sizes):
     # print("Biggest dimension is "+str(k))
     A_ = np.random.rand(k, n)
     start = time.monotonic_ns()
     Q, R = qr_factorization3(A_)
+    # Q, R = np.linalg.qr(A_)
     done = time.monotonic_ns()
     elapsed = done - start
     times.append(elapsed)

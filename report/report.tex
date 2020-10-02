@@ -29,7 +29,7 @@
 % Setting the stage %
 \section{Setting the stage}\label{sec:setting-the-stage}
 
-\subsection{The problem: Least Square}\label{subsec:linear-square-problem}
+\subsection{The problem: Least Squares}\label{subsec:linear-square-problem}
 Our problem is to find an array x such that \\\\
 \centerline{$\min_{x \in \mathds{R}^n}\|Ax-b\|$} \\\\
 holds, where
@@ -42,7 +42,11 @@ and so to find the closest vector to $b$ inside the hyperplane $Im(A)$.
 
 % Conjugate gradiend method %
 \subsection{First algorithm: Conjugate Gradient Method}\label{subsec:conjugate-gradient-method}
-If a square matrix $A = A^{T}$ is positive definite, then we can find a solution to $Ax = b$ by minimizing the (strictly convex) function $f(x) = \frac{1}{2}x^{T}Ax - b^{T}x$ (that is equal to set $\nabla f(x) = Ax - b = 0$). However our matrix $A$ is a \emph{tall thin matrix} and since in this case finding a solution to  $Ax = b$ is equivalent to solving the normal equations
+In general, if a square matrix $B = B^{T}$ is positive definite, then we can find a solution to $Bx = c$ by minimizing the (strictly convex) function 
+\[
+f(x) = \frac{1}{2}x^{T}Bx - c^{T}x \tag{1} \label{eq:cgfunction}
+\]
+(that is equal to set $\nabla f(x) = Bx - c = 0$). However our matrix $A$ is a \emph{tall thin matrix} and since in this case finding a solution to  $Ax = b$ is equivalent to solving the normal equations
 \[
 A^{T}Ax - A^{T}b = 0
 \]
@@ -50,13 +54,13 @@ then we can use \textit{Conjugate gradient} method to minimize the function
 \[
 f(x) = \frac{1}{2}x^{T}A^{T}Ax - x^{T}A^{T}b
 \]
-
-We remember that \begin{itemize}
-\item \textbf{A-orthogonal}: $x, y \in R^{m}$ are A-orthogonal if $x^{T}Ay = 0$
-\item \textbf{A-norm}: the A-norm of $x \in R^{m}$ is $\|x\|_{A} := (x^{t}Ax)^{\frac{1}{2}}$. Note that if A is \textit{positive definite}, then the A-norm is $\geq 0$ (it is $0$ only for the $0$ vector)
+From now on we set $B = A^{T}A$ and $c = A^{T}b$ so our function to minimize become exactly the \eqref{eq:cgfunction}, where $B$ is positive definite. 
+\\We remember that \begin{itemize}
+\item \textbf{B-orthogonal}: $x, y \in R^{m}$ are B-orthogonal if $x^{T}By = 0$
+\item \textbf{B-norm}: the B-norm of $x \in R^{m}$ is $\|x\|_{B} := (x^{t}Bx)^{\frac{1}{2}}$. Note that if B is \textit{positive definite}, then the B-norm is $\geq 0$ (it is $0$ only for the $0$ vector)
 \end{itemize}
-Let $x_{k}$ be the parameter vector after the $k$-th iteration, then the residual vector is $r_{k} = b - Ax_{k}$ and the negative gradient $g_{k} = -\nabla f(x_{k}) = A^{T}b - A^{T}Ax = A^{T}r_{k}$. The step size $\alpha_{k}$ can be computed in a similar way as in the standard CG method, but here the denominator is $d_{k}^{T}A^{T}Ad_k = \|Ad_{k}\|^2$ and so it can be obtained without calculating $A^{T}A$.
-\\To update the residual, we use the fact that $r_{k} = b - Ax_{k} = [x_{k} = x_{k-1} + \alpha_{k}d_{k-1}] = b - A(x_{k-1} + \alpha_{k}d_{k-1}) = [b-Ax_{k-1} = r_{k-1}] = r_{k-1} - \alpha_{k}Ad_{k-1}$. The trick about conjugate gradient is that at each step we generate a new search direction, which is not exactly the residual, but is the residual modified to be $A^{T}A$-orthogonal to the previous search direction. In this way, $\beta_{k}$ is a scalar that is chosen s.t. $d_{k}$ is $A^{T}A$-orthogonal to $d_{k-1}$.
+Let $x_{k}$ be the parameter vector after the $k$-th iteration, then the residual vector is $r_{k} = b - Ax_{k}$ and the negative gradient $g_{k} = -\nabla f(x_{k}) = c - Bx = A^{T}b - A^{T}Ax = A^{T}r_{k}$. The step size $\alpha_{k}$ can be computed in a similar way as in the standard CG method, but here the denominator is $d_{k}^{T}Bd_k= d_{k}^{T}A^{T}Ad_k = \|Ad_{k}\|^2$ and so it can be obtained without calculating $B = A^{T}A$.
+\\To update the residual, we use the fact that $r_{k} = b - Ax_{k} = [x_{k} = x_{k-1} + \alpha_{k}d_{k-1}] = b - A(x_{k-1} + \alpha_{k}d_{k-1}) = [b-Ax_{k-1} = r_{k-1}] = r_{k-1} - \alpha_{k}Ad_{k-1}$. The trick about conjugate gradient is that at each step we generate a new search direction, which is not exactly the residual, but is the residual modified to be $B$-orthogonal to the previous search direction. In this way, $\beta_{k}$ is a scalar that is chosen s.t. $d_{k}$ is $B$-orthogonal to $d_{k-1}$.
 
 \subsection{Second algorithm: QR factorization with Householder Reflectors}\label{subsec:qr-factorization-with-householder-reflectors}
 To solve the Least Square Problem, we use the \textit{thin QR factorization} with all the optimization seen (fast Householder-vector product, cancellation problem resolution, manually changing known entries) in order to factorize $A$ as $Q_{1}R_{1}$.
@@ -70,14 +74,14 @@ Finally we should have $x  = \arg\!\min_{x \in  \mathds{R}^n}\|Ax - b\| = R_{1}^
 \section{What to expect from the algorithms}\label{sec:what-to-expect-from-the-algorithms}
 
 \subsection{Conjugate Gradient}\label{subsec:conjugate-gradient}
-Our system $Ax = b$ is equivalent to the system $Bx = c$, where $B = A^{T}A$ is symmetric and positive definite and $c = A^{T}b$. However, from a numerical point of view, the two systems are different, because of rounding-off errors that occur in joining the product $A^{T}A$. But since our algorithm does not involve the computation of $B = A^{T}A$, then we have the same convergence result as in the standard CG method. In particular we know that this method gives the solution in $m$ steps if no rounding-off error occurs, where $m$ is the size of $B$, namely the smallest size of our original rectangular matrix $A$. In realistic cases, the absence of rounding-off errors cannot be assured and so we need more than $m$ step or even to restart the algorithm many times. Also the basic relations concerning convergence ($<r_i,r_k>\,= 0, <Ad_i,d_k>\,= 0$ for $i \ne k$) will not be satisfied exactly and therefore $x_m$ will not be as good an estimate the exact solution as desired. From \cite{hestenes1952methods} follows that the larger the ratios $\alpha_i / \alpha_{i-1}$, the more rapidily the rounding-off errors accumulate. Moreover, since $\alpha_i$ lie on the range
+Our system $Ax = b$ is equivalent to the system $Bx = c$, where $B = A^{T}A$ is symmetric and positive definite and $c = A^{T}b$. However, from a numerical point of view, the two systems are different, because of rounding-off errors that occur in joining the product $A^{T}A$. But since our algorithm does not involve the computation of $B = A^{T}A$, then we have the same convergence result as in the standard CG method. In particular we know that this method gives the solution in $n$ steps if no rounding-off error occurs, where $n$ is the size of $B$, namely the smallest size of our original rectangular matrix $A$. In realistic cases, the absence of rounding-off errors cannot be assured and so we need more than $n$ step or even to restart the algorithm many times. Also the basic relations concerning convergence ($<r_i,r_k>\,= 0, <Ad_i,d_k>\,= 0$ for $i \ne k$) will not be satisfied exactly and therefore $x_n$ will not be as good an estimate the exact solution as desired. From \cite{hestenes1952methods} follows that the larger the ratios $\alpha_i / \alpha_{i-1}$, the more rapidily the rounding-off errors accumulate. Moreover, since $\alpha_i$ lie on the range
 \[
 1 / \lambda_{max} < \alpha_i < 1 / \lambda_{min}
 \] 
 the ratio $\rho = \lambda_{max}/\lambda_{min}$ gives us an upper bound of the critical ratio  $\alpha_i / \alpha_{i-1}$ which determines the stability of the entire process. So we would like to have $\rho$ near one, that means our matrix is near multiple of the identity and then the CG method is relatively stable. 
 
-The algorithm performs at every step two multiplications  (one is enough if we compute it and store it) of $A$ with the $m$-vector $d_i$ $(O(m^2n))$ and one multiplication of $A^{T}$ with the $n$-vector $r_i$ $(O(n^2m))$. 
-So, the total cost is $m(O(m^2n) + O((n^2m)) + O(m^2))$, where $O(m^2)$ comes from the scalars product between $m$-vectors to compute the norms for every steps.
+The algorithm performs at every step two multiplications  (one is enough if we compute it and store it) of $A$ with the $n$-vector $d_i$ $(O(mn))$ and one multiplication of $A^{T}$ with the $m$-vector $r_i$ $(O(nm))$. 
+So, the total cost is $n(O(mn) + O((nm)) + O(n)) \approx O(n^2m)$, where $O(n)$ comes from the scalars product between $n$-vectors to compute the norms for every steps.
 
 The convergence of the Conjugate Gradient Method depends on the maximum eigenvalue $\lambda_{max}$ and the minimum eigenvalue $\lambda_{min}$, and CG converges with rate 
 \\$\|x-x_{k}\| \leq \left\lVert\frac{\sqrt{\lambda_{max}}-\sqrt{\lambda_{min}}}{\sqrt{\lambda_{max}}+\sqrt{\lambda_{min}}}\right\rVert^{k} \leq \|x - x_{0}\|$

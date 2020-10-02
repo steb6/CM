@@ -76,8 +76,8 @@ def qr_factorization3(x_):
         x_[j:, j+1:] = x_[j:, j+1:] - 2 * np.matmul(v_, np.matmul(column_to_row(v_), x_[j:, j+1:]))
         V.append(v_)
 
-    Q_ = np.identity(m)
-    for j, v_ in enumerate(V):
-        Q_[:, j:] = Q_[:, j:] - np.matmul(Q_[:, j:], 2*np.matmul(v_, column_to_row(v_)))
+    # Q_ = np.identity(m)
+    # for j, v_ in enumerate(V):
+    #     Q_[:, j:] = Q_[:, j:] - np.matmul(Q_[:, j:], 2*np.matmul(v_, column_to_row(v_)))
     R_ = x_
-    return Q_, R_
+    return V, R_

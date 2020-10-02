@@ -136,5 +136,8 @@ report.synctex.gz
 theory.tex
 prove.py
 .idea
+report/report.bbl
+report/report.blg
+
 # Ignore report.pdf to make merge easier
 report/report.pdf

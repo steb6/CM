@@ -26,6 +26,8 @@
     \vspace{0.9cm}
 \end{center}
 
+% Nuova pagina %
+\newpage
 % Setting the stage %
 \section{Setting the stage}\label{sec:setting-the-stage}
 
@@ -62,15 +64,16 @@ From now on we set $B = A^{T}A$ and $c = A^{T}b$ so our function to minimize bec
 Let $x_{k}$ be the parameter vector after the $k$-th iteration, then the residual vector is $r_{k} = b - Ax_{k}$ and the negative gradient $g_{k} = -\nabla f(x_{k}) = c - Bx = A^{T}b - A^{T}Ax = A^{T}r_{k}$. The step size $\alpha_{k}$ can be computed in a similar way as in the standard CG method, but here the denominator is $d_{k}^{T}Bd_k= d_{k}^{T}A^{T}Ad_k = \|Ad_{k}\|^2$ and so it can be obtained without calculating $B = A^{T}A$.
 \\To update the residual, we use the fact that $r_{k} = b - Ax_{k} = [x_{k} = x_{k-1} + \alpha_{k}d_{k-1}] = b - A(x_{k-1} + \alpha_{k}d_{k-1}) = [b-Ax_{k-1} = r_{k-1}] = r_{k-1} - \alpha_{k}Ad_{k-1}$. The trick about conjugate gradient is that at each step we generate a new search direction, which is not exactly the residual, but is the residual modified to be $B$-orthogonal to the previous search direction. In this way, $\beta_{k}$ is a scalar that is chosen s.t. $d_{k}$ is $B$-orthogonal to $d_{k-1}$.
 
+% QR factorization method %
 \subsection{Second algorithm: QR factorization with Householder Reflectors}\label{subsec:qr-factorization-with-householder-reflectors}
 To solve the Least Square Problem, we use the \textit{thin QR factorization} with all the optimization seen (fast Householder-vector product, cancellation problem resolution, manually changing known entries) in order to factorize $A$ as $Q_{1}R_{1}$.
-We use a variant of the \textit{thin QR factorization} where we do not form the matrix $Q$, but we keep the Householder vector $u_{k}$ to perform implicit product with $Q$ and $Q^{T}$.
+We use a variant \cite{nla} of the \textit{thin QR factorization} where we do not form the matrix $Q$, but we keep the Householder vector $u_{k}$ to perform implicit product with $Q$ and $Q^{T}$.
 With this factorization, we can write $\|Ax - b\|$ as $\left\lVert \begin{bmatrix} R_{1}x - Q_{1}^{T}b \\ Q_{2}^{T}b\end{bmatrix} \right\lVert$
 and now we can chose $x$ such that $R_{1}x - Q_{1}^{T}b = 0$, which is $x = R_{1}^{-1}Q_{1}^{T}b$ (if $R_{1}$ is invertible).
 We can write $x = R^{-1}(Q^{T}b) = R^{-1}(((I-2v_{1}v_{1}^{T})(I-2v_{2}v_{2}^{T})\dots(I-2v_{m}v_{m}^{T}))^{T}b)$
 Finally we should have $x  = \arg\!\min_{x \in  \mathds{R}^n}\|Ax - b\| = R_{1}^{-1}Q_{1}^{T}b$ and $\|Ax - b\| = \|Q_{2}^{T}b\|$.
 
-
+\newpage
 \section{What to expect from the algorithms}\label{sec:what-to-expect-from-the-algorithms}
 
 \subsection{Conjugate Gradient}\label{subsec:conjugate-gradient}
@@ -111,9 +114,8 @@ Its shape is $(1765, 20)$, we augmented it with few functions of the features of
 \end{itemize}
 So the final shape of $A$ is $(1765, 23)$.
     The condition number of the matrix $A$ (calculated with \textit{numpy.linalg.cond}, which does SVD and $\frac{\sigma_{1}}{\sigma_{n}}$) is $\approx 400000 (4 \times 10^{5})$, while the condition number of a random matrix with the same dimension and same range of values (min and max of the 2 matrices are the same) is $\approx 1.7$.
-    Those values doesn't change with respect to the augmented columns, because the augmented columns are not linear combination of other columns.
     We can conclude that the matrix $A$ is ill conditioned, so it is almost singular and the solution of our problem could be not accurate.
-    Anyway, we know that the solution of the least square problem exists and it is unique, because $A$ is a full column rank matrix because $rank(A) = n = 23$, where rank is calculated as the number of singular values $> \max(\sigma_{i}) \times max(m, n) \times eps$, which is the same approach used in MATLAB.
+    Anyway, we know that the solution of the least square problem exists and it is unique, because $A$ is a full column rank matrix ($rank(A) = n = 23$), where rank is calculated as the number of singular values $> \max(\sigma_{i}) \times max(m, n) \times eps$, which is the same approach used in MATLAB .
 
 \bibliography{bibliography}
 \bibliographystyle{unsrt}

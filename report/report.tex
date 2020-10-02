@@ -89,12 +89,15 @@ The convergence of the Conjugate Gradient Method depends on the maximum eigenval
 \subsection{QR with HouseHolder}\label{subsec:qr-with-householder}
 The QR factorization has a cancellation problem during the Householder reflector construction that is easily fixed by summing first entry and norm instead of subtract it.
 \\Apart from that, since every step is \textit{backward stable}, the factorization algorithm is \textit{backward stable}: the computed $Q$, $R$ are the exact result of $qr(A + \Delta A)$ where $ \left\lVert \Delta A \right\rVert \leq O(u)\left\lVert A \right\rVert$, so we only have intrinsic representation errors.
+\\By looking at the residual $\left\lVert A x - b\right\rVert$, we can't say if our computed $x$ is close to the true solution $x^{*}$: the residual can be arbitrarily large because it depends on the problem.
+The computed $x$ solves the modified problem $\min \left\lVert Ax - (b + Q_{1}r)\right\rVert$, and $x$ is close to the true solution $x^{*}$ if the residual of the top block $r_{1} = Q_{1}^{T}(Ax - b)$ is close to 0.
+Moreover, $\frac{\left\lVert x - x^{*} \right\rVert}{ \left\lVert x^{*} \right\rVert} \leq k_{rel, b\rightarrow x}\frac{\left\lVert r \right\rVert}{\left\lVert b \right\rVert}$.
 \\The computational cost for thin QR factorization is $2mn^2 - \frac{2}{3}n^3 + O(mn)$ flops, which represents two cases: if $m \approx n$, we have that the cost is $\frac{4}{3}n^3$, if $m \gg n$ the cost scales like $2mn^2$, so it scales linearly with respect to the biggest dimension of A .
 \\Before we said that $x = R_{1}^{-1}Q_{1}^{T}b$, but to be able to calculate it we need $R_{1}$ to be invertible.
-\\We know that $A$ has full column rank $\iff Az \neq 0 \forall z \neq 0 \iff z^{T}A^{T}Az = \left\lVert Az \right\rVert^{2} \forall z \neq 0 \iff A^{T}A$ is positive definite $\iff$ all eigenvalues of $A^{T}A$ are $> 0\iff $0 is not an eigenvalue of $A^{T}A \iff A^{T}A = (Q_{1}R_{1})^{T}Q_{1}R_{1} = R_{1}^{T}Q_{1}^{T}Q_{1}R_{1} = R_{1}^{T}R_{1}$ is invertible $\iff det(A^{T}A) = det(R_{1}^{T})det(R_{1}) \neq 0 \iff det(R_{1}) \neq 0 \iff R_{1}$ is invertible.
-\\So if $A$ has full column rank, $\min_{x \in \mathds{R}^n}\|Ax-b\|$ has solution and it is unique.
-\\$R_{1}$ is invertible also if all elements on its diagonal are $\neq 0$.
-The cost to solve $x = R_{1}^{-1}(Q_{1}^{T})b$ is a multiplication $c = (Q_{1}^{T})b$, which costs $O(mn)$, and the resolution of the triangular system $R_{1}x = c$ with back-substitution, which costs $O(n^{2})$.
+We know that $A$ has full column rank $\iff Az \neq 0 \forall z \neq 0 \iff z^{T}A^{T}Az = \left\lVert Az \right\rVert^{2} \forall z \neq 0 \iff A^{T}A$ is positive definite $\iff$ all eigenvalues of $A^{T}A$ are $> 0\iff $0 is not an eigenvalue of $A^{T}A \iff A^{T}A = (Q_{1}R_{1})^{T}Q_{1}R_{1} = R_{1}^{T}Q_{1}^{T}Q_{1}R_{1} = R_{1}^{T}R_{1}$ is invertible $\iff det(A^{T}A) = det(R_{1}^{T})det(R_{1}) \neq 0 \iff det(R_{1}) \neq 0 \iff R_{1}$ is invertible.
+So if $A$ has full column rank, $\min_{x \in \mathds{R}^n}\|Ax-b\|$ has solution and it is unique.
+$R_{1}$ is invertible also if all elements on its diagonal are $\neq 0$.
+\\The cost to solve $x = R_{1}^{-1}(Q_{1}^{T})b$ is a multiplication $c = (Q_{1}^{T})b$, which costs $O(mn)$, and the resolution of the triangular system $R_{1}x = c$ with back-substitution, which costs $O(n^{2})$.
 Anyway, the overall cost $O(mn) + O(n^{2})$ is negligible with respect to the cost $O(mn^{2})$ to compute $Q_{1}, R_{1}$.
 This factorization algorithm is bandwidth heavy and not parallelizable, as every reflection that produces a new zero element changes the entirety of both Q and R matrices
 

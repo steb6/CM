@@ -109,8 +109,8 @@ print("m>>n: Factorizing for various m...")
 times = []
 n = 5
 m_init = 10000
-m_end = 50000
-m_step = 2500
+m_end = 500000
+m_step = 5000
 sizes = range(m_init, m_end, m_step)
 for k in tqdm.tqdm(sizes):
     A_ = np.random.rand(k, n)

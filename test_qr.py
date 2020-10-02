@@ -62,9 +62,6 @@ x = np.matmul(R_inv, x[:R_inv.shape[1]])
 
 assert np.isclose(norm(x-x_np), 0, atol=1.e-5)
 
-# print("||A - QR|| =", norm(A - np.matmul(Q1, R1)))
-# print("||A - QR||/||A||", np.divide(norm(A - np.matmul(Q, R)), norm(A)))
-# print("||Ax - b|| =", norm(np.matmul(A, x) - b))
 print("our implementation: ns spent: ", elapsed)
 print("||Ax - b|| = ", norm(np.matmul(A, x) - b))
 print("||Ax - b||/||b|| =", np.divide(norm(np.matmul(A, x) - b), norm(b)))
@@ -74,8 +71,8 @@ print("Conditioning angle: ", conditioning_angle(A, b, x))
 # Check if computational cost scale with m
 print("********** Checking computational cost **********")
 times = []
-sizes = range(n, m, 100)
-for k in sizes:
+sizes = range(n, m, 10)
+for k in tqdm.tqdm(sizes):
     A_ = A[:k, :]
     tries = []
     for i in range(TRIES):

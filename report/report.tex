@@ -117,6 +117,69 @@ So the final shape of $A$ is $(1765, 23)$.
     We can conclude that the matrix $A$ is ill conditioned, so it is almost singular and the solution of our problem could be not accurate.
     Anyway, we know that the solution of the least square problem exists and it is unique, because $A$ is a full column rank matrix ($rank(A) = n = 23$), where rank is calculated as the number of singular values $> \max(\sigma_{i}) \times max(m, n) \times eps$, which is the same approach used in MATLAB .
 
+\section{Code}\label{sec:code}
+\subsection{Conjugate gradient method Code}\label{subsec:conjugate-gradient-method-code}
+\subsection{QR factorization method code}\label{subsec:qr-code}
+The code has been implemented in \textit{Python}, we used \textit{Numpy} for array manipulation.
+In line 6 of algorithm 3, we used \textit{numpy.linalg.inv} to compute the inverse of \textit{R}, which does a back substitution because \textit{R} is upper-triangular.
+ % Householder reflector pseudocode
+\makeatletter
+\def\BState{\State\hskip-\ALG@thistlm}
+\makeatother
+\begin{algorithm}
+\caption{Householder reflector}
+\begin{algorithmic}[1]
+\Function{$[v, s] \gets householder\_vector(x)$}{}
+\State $s \gets -sign(x[0]) \times norm(x)$
+\State $v \gets x$
+\State $v[0] \gets v[0] -s$
+\State $v \gets \frac{v}{norm(v)}$
+\State \textit{return v, s}
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+% QR factorization pseudocode
+\makeatletter
+\makeatother
+\begin{algorithm}
+\caption{QR factorization with Householder Reflectors}
+\begin{algorithmic}[1]
+\Function{$[V, R] \gets qr\_factorization(A)$}{}
+\BState \emph{top}:
+\State $\textit{[m, n]} \gets \textit{size(A)}$
+\State $\textit{V} \gets \textit{emptyList}$
+\State $Q \gets I_{m \times m}$
+\BState \emph{loop}:
+\State \emph{for j = 1:min(m-1, n)}:
+\State \quad$\textit{[v, s]} \gets \textit{householder\_vector(A(j:end, j))}$
+\State \quad$\textit{A(j, j)} \gets \textit{s}$
+\State \quad$\textit{A(j+1:end, j)} \gets \textit{0}$
+\State \quad$\textit{A(j:end, j:end)} \gets \textit{A(j:end, j:end)} - 2\times v \times (v^{T} \times \textit{A(j:end, j+1:end))}$
+\State \quad$\textit{V} \gets \textit{V.insert(v)}$
+\BState \emph{end}:
+\State $\textit{R = A}$
+\State \textit{return V, R}
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+% Resolution pseudocode
+\makeatletter
+\makeatother
+\begin{algorithm}
+\caption{LS resolution with QR factorization}
+\begin{algorithmic}[1]
+\Function{$x \gets A, b$}{}
+\State $\textit{[V, R]} \gets \textit{qr\_factorization(A)}$
+\State $x \gets b$
+\State \emph{for i = 1:n}:
+\State \quad$x[i:end] \gets x[i:end] - 2 \times v_{i} \times (v_{i}^{T} \times x[i:end])$
+\State $x \gets R^{-1}x$
+\State \textit{return x}
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+
+
 \bibliography{bibliography}
 \bibliographystyle{unsrt}
 

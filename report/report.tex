@@ -62,7 +62,7 @@ From now on we set $B = A^{T}A$ and $c = A^{T}b$ so our function to minimize bec
 \item \textbf{B-norm}: the B-norm of $x \in R^{m}$ is $\|x\|_{B} := (x^{t}Bx)^{\frac{1}{2}}$. Note that if B is \textit{positive definite}, then the B-norm is $\geq 0$ (it is $0$ only for the $0$ vector)
 \end{itemize}
 Let $x_{k}$ be the parameter vector after the $k$-th iteration, then the residual vector is $r_{k} = b - Ax_{k}$ and the negative gradient $g_{k} = -\nabla f(x_{k}) = c - Bx = A^{T}b - A^{T}Ax = A^{T}r_{k}$. The step size $\alpha_{k}$ can be computed in a similar way as in the standard CG method, but here the denominator is $d_{k}^{T}Bd_k= d_{k}^{T}A^{T}Ad_k = \|Ad_{k}\|^2$ and so it can be obtained without calculating $B = A^{T}A$.
-\\To update the residual, we use the fact that $r_{k} = b - Ax_{k} = [x_{k} = x_{k-1} + \alpha_{k}d_{k-1}] = b - A(x_{k-1} + \alpha_{k}d_{k-1}) = [b-Ax_{k-1} = r_{k-1}] = r_{k-1} - \alpha_{k}Ad_{k-1}$. The trick about conjugate gradient is that at each step we generate a new search direction, which is not exactly the residual, but is the residual modified to be $B$-orthogonal to the previous search direction. In this way, $\beta_{k}$ is a scalar that is chosen s.t. $d_{k}$ is $B$-orthogonal to $d_{k-1}$.
+\\To update the residual, we use the fact that $r_{k} = b - Ax_{k} = [x_{k} = x_{k-1} + \alpha_{k-1}d_{k-1}] = b - A(x_{k-1} + \alpha_{k-1}d_{k-1}) = [b-Ax_{k-1} = r_{k-1}] = r_{k-1} - \alpha_{k-1}Ad_{k-1}$. The trick about conjugate gradient is that at each step we generate a new search direction, which is not exactly the residual, but is the residual modified to be $B$-orthogonal to the previous search direction. In this way, $\beta_{k}$ is a scalar that is chosen s.t. $d_{k}$ is $B$-orthogonal to $d_{k-1}$.
 
 % QR factorization method %
 \subsection{Second algorithm: QR factorization with Householder Reflectors}\label{subsec:qr-factorization-with-householder-reflectors}
@@ -118,10 +118,38 @@ So the final shape of $A$ is $(1765, 23)$.
     Anyway, we know that the solution of the least square problem exists and it is unique, because $A$ is a full column rank matrix ($rank(A) = n = 23$), where rank is calculated as the number of singular values $> \max(\sigma_{i}) \times max(m, n) \times eps$, which is the same approach used in MATLAB .
 
 \section{Code}\label{sec:code}
-\subsection{Conjugate gradient method Code}
-\subsection{QR factorization method code}\label{subsec:qr-code}
 The code has been implemented in \textit{Python}, we used \textit{Numpy} for array manipulation.
-In line 6 of algorithm 3, we used \textit{numpy.linalg.inv} to compute the inverse of \textit{R}, which does a back substitution because \textit{R} is upper-triangular.
+\subsection{Conjugate gradient method Code}
+The Algorithm 1 performs the CG method applied to our function \eqref{eq:cgfunction}, starting from an initial guess of $x$. For each iteration we store the pruduct $Ad_k$ in a variable so that it can be computed only once insted of twice.
+% CG pseudocode
+\makeatletter
+\makeatother
+\begin{algorithm}
+\caption{LS resolution with CG method}
+\begin{algorithmic}[1]
+\Function{$x \gets A, b$}{}
+\State $x_0 \gets starting\,guess$
+\State $r_0 \gets b -  Ax_0$
+\State $g_0 \gets A^{T}r_0$ 
+\State \emph{for i = 1:m}:
+\State \quad\emph{if $g_{k-1} = 0$}:
+\State\quad\quad\textit{return $x_{k-1}$}
+\State \quad\emph{if $i > 1$}:
+\State\quad\quad{$\beta_{k} = - \|g_{k-1}\|^2 / \|g_{k-2}\|^2$}
+\State \quad\emph{if $i = 1$}: 
+\State\quad\quad{$d_{k} = g_{0}$}
+\State \quad\emph{else}: 
+\State\quad\quad{$d_{k} = g_{k-1} - \beta_{k}d_{k-1}$}
+\State\quad $\alpha_{k} = \|g_{k-1}\|^2 / \|Ad_{k}\|^2$
+\State\quad $x_{k} = x_{k-1} + \alpha_{k}d_{k}$
+\State\quad $r_{k} = r_{k-1} - \alpha_{k}Ad_{k}$
+\State\quad $g_{k} = A^{T}r_{k}$
+\State\textit{return $x_{m}$}
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
+\subsection{QR factorization method code}\label{subsec:qr-code}
+In line 6 of Algorithm 4, we used \textit{numpy.linalg.inv} to compute the inverse of \textit{R}, which does a back substitution because \textit{R} is upper-triangular.
  % Householder reflector pseudocode
 \makeatletter
 \def\BState{\State\hskip-\ALG@thistlm}

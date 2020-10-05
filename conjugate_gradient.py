@@ -5,42 +5,37 @@ from utils import transpose_matrix, norm
 def is_pos_def(x):
     return np.all(np.linalg.eigvals(x) > 0) and is_symmetric(x)
 
-
 def is_symmetric(a, rtol=1e-05, atol=1e-08):
     return np.allclose(a, a.T, rtol=rtol, atol=atol)
 
-''' CG for square matrix
-
-def conjugate_gradient(A, b):
-    if is_pos_def(np.matmul(transpose_matrix(A), A)):
-        print("A_T*A is positive definite")
+def conjugate_gradient(A, b, x0 = None, eps = None, maxIter = 1000):
+    '''
+    Performs conjugate gradient method to the function f(x) = 1/2(A*Ax) - x*A*b
+    :param A: a matrix mxn
+    :param b: a column vector nx1
+    :param x0: starting point, if None the 0 vector is used as default starting point
+    :param eps: (optional, default value 1e-5) the accuracy in the stopping criterion
+    :param maxIter:  (optional, default value 1000): the maximum number of iterations
+    :return: [x, status]: 
+    :  - x (mx1 real column vector): it solves ||gradient(f(x))|| = A*Ax - A*b = 0
+    :  - status (string): a string describing the status of the algorithm at
+    :    termination 
+    :    = 'optimal': the algorithm terminated having proven that x is an optimal solution, i.e., 
+    :                 the norm of the gradient at x is less than the required threshold
+    :    = 'finished': the algorithm terminated in m iterations since no treshold of accuracy is required
+    :    = 'stopped': the algorithm terminated having exhausted the maximum number of iterations
+    '''
+    if x0 is None:
+        x = np.zeros(A.shape[1])
     else:
-        print("A_T*A is not positive definite")
-    x = 0
-    r = d = b
-    for k in range(len(A)):
-        r_T = transpose_matrix(r)
-        d_T = transpose_matrix(d)
-        above = np.matmul(r_T, r)
-        under = np.matmul(d_T, np.matmul(A, d))
-        alpha = np.divide(above, under)
-        x = x + alpha*np.matmul(A, d)
-        beta = np.divide(np.matmul(np.transpose(r), r), np.matmul(np.transpose(r), r))
-        d = r + beta*d
-    return x
-'''
-
-
-# algorithm from https://www.stat.washington.edu/wxs/Stat538-w03/conjugate-gradients.pdf
-def conjugate_gradient1(A, b):
-    x = np.zeros(A.shape[1])
+        x = x0
+        
     r =  b  - np.matmul(A, x)
     g_0 = np.matmul(transpose_matrix(A), r)
     d = g_0
     g = g_1 = g_0
-    for i in range(1, A.shape[1]):
-        if not np.any(g):
-            return x
+    i = 1
+    while True:
         if i>1:
             g_2 = g_1
             g_1 = g
@@ -51,22 +46,24 @@ def conjugate_gradient1(A, b):
         x = x + alpha*d
         r = r - alpha*Ad
         g = np.matmul(transpose_matrix(A), r)
-    return x               
+        i = i+1
+        if eps is None: 
+            # no stopping condition, we end up in m iterations or when the norm of the gradient is zero
+            if not np.any(g):
+                status = "optimal"
+                break
+            if i > A.shape[1]:
+                status = "finished"
+                break
+        else:
+            # check accuracy for stopping condition
+            if norm(g) <= eps:
+                status = "optimal"
+                break
+            if i > maxIter:
+                status = "stopped"
+                break
+    return x, status               
 
-# algorithm from https://nvlpubs.nist.gov/nistpubs/jres/049/jresv49n6p409_A1b.pdf
-def conjugate_gradient2(A, b):
-    x = np.zeros(A.shape[1])
-    r =  b  - np.matmul(A, x)
-    #g_0 = np.matmul(transpose_matrix(A), r)
-    d = np.matmul(transpose_matrix(A), r)
-    #g = g_1 = g_0
-    for i in range(1, A.shape[1]):
-        alpha = np.divide(np.square(norm(np.matmul(transpose_matrix(A), r))),np.square(norm(np.matmul(A, d))))
-        x = x + alpha*d
-        r_ = r
-        r = r - alpha*np.matmul(A,d)
-        beta = np.divide(np.square(norm(np.matmul(transpose_matrix(A), r))),np.square(norm(np.matmul(transpose_matrix(A), r_))))
-        d = np.matmul(transpose_matrix(A),r) + beta*d
-    return x
 
 

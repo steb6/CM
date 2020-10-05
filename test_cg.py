@@ -1,19 +1,30 @@
-from qr_householder import qr_factorization1, qr_factorization2, qr_factorization3
 import numpy as np
 #from utils import norm
 from numpy.linalg import norm
 from data_manager import read_data
 import time
-from conjugate_gradient import conjugate_gradient1, conjugate_gradient2
-from scipy.sparse.linalg import cg
-
-functions = [qr_factorization1, qr_factorization2, qr_factorization3]
+from conjugate_gradient import conjugate_gradient
 
 A, b = read_data('data/ML-CUP19-TR.csv')
 m, n = A.shape
-x1 = conjugate_gradient1(A, b)
-x2 = conjugate_gradient2(A, b)
-xnp = np.linalg.lstsq(A, b)
-print("Numpy least squares: ||Ax - b|| =", norm(np.matmul(A, xnp[0]) - b))
-print("CG1: ||Ax - b|| =", norm(np.matmul(A, x1) - b))
-print("CG2: ||Ax - b|| =", norm(np.matmul(A, x2) - b))
+
+# PARAMETERS TO EXPERIMENTAL SET UP: initial guess x0, beta, stopping condition so epsilon and maxiteration(?) 
+
+# Our solution
+start = time.monotonic_ns()
+x, status = conjugate_gradient(A, b)
+done = time.monotonic_ns()
+elapsed = done - start
+print("our implementation: ns spent: ", elapsed)
+print("status: ", status)
+print("||Ax - b|| = ", norm(np.matmul(A, x) - b))
+print("||Ax - b||/||b|| =", np.divide(norm(np.matmul(A, x) - b), norm(b)))
+print("||A*Ax - A*b|| =", norm(np.matmul(np.matmul(np.transpose(A),A),x) - np.matmul(np.transpose(A),b)))
+# Library Leas Squares solution
+start = time.monotonic_ns()
+xnp = np.linalg.lstsq(A, b, rcond=None)
+done = time.monotonic_ns()
+elapsed = done - start
+print("numpy.linalg.qr: ns spent: ", elapsed)
+print("||Ax - b|| =", norm(np.matmul(A, xnp[0]) - b))
+print("||Ax - b||/||b|| =", np.divide(norm(np.matmul(A, xnp[0]) - b), norm(b)))

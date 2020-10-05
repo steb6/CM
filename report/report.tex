@@ -149,7 +149,7 @@ The Algorithm 1 performs the CG method applied to our function \eqref{eq:cgfunct
 \end{algorithmic}
 \end{algorithm}
 \subsection{QR factorization method code}\label{subsec:qr-code}
-In line 6 of Algorithm 4, we used \textit{numpy.linalg.inv} to compute the inverse of \textit{R}, which does a back substitution because \textit{R} is upper-triangular.
+In line 6 of Algorithm 4, we used \textit{scipy.linalg.lapack.dtrtri} to compute the inverse of \textit{R}, which is the optimized method for upper-triangular matrices.
  % Householder reflector pseudocode
 \makeatletter
 \def\BState{\State\hskip-\ALG@thistlm}
@@ -207,11 +207,11 @@ In line 6 of Algorithm 4, we used \textit{numpy.linalg.inv} to compute the inver
 \end{algorithm}
 
 \section{Experimental set up}\label{sec:experimental-set-up}
-We are going to compare the two methods over the ML-cup in terms of time spent, memory usage and quality of the solution, and we will compare these results with other methods like SVD and normal equations .
+We are going to compare the two methods over the ML-cup in terms of time spent, memory usage and quality of the solution.
 We will look how much our solutions are good in terms of residual and how much we got close to the true solution.
 We will check the condition angle of the problem, to understand how much our solution is stable, and we will compare it with a random matrix with the same dimension and range of values of the ML-cup one.
 Finally, we will test which is the maximum problem dimension computable for the two methods with a given RAM .
-Moreover, for the QR factorization, we are going to test how the computational cost of the factorization scales varying the dimension $m$ over the 3 matrices $m \times m$, $m \times n$ with $m > n$ and $m \times n$ with $m \gg n$.
+Moreover, for the QR factorization, we are going to test how the computational cost scales varying the dimension $m$ over the 3 matrices $m \times m$, $m \times n$ with $m > n$ and $m \times n$ with $m \gg n$.
 \bibliography{bibliography}
 \bibliographystyle{unsrt}
 

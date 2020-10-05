@@ -1,4 +1,4 @@
-from qr_householder import qr_factorization3
+from qr_householder import qr_method
 import numpy as np
 from numpy.linalg import norm
 from data_manager import read_data
@@ -7,13 +7,13 @@ import matplotlib.pyplot as plt
 import tqdm
 from numpy.linalg import lstsq
 from utils import conditioning_angle
-from utils import row_to_column, column_to_row
+from psutil import virtual_memory
 
 # Parameters:
 # Number of tries to compute mean
-TRIES = 20
+TRIES = 10
 # Number of first/last elements to remove from tries
-CUT = 4
+CUT = 2
 
 # Read data
 A, b = read_data('data/ML-CUP19-TR.csv', add_augmented_columns=True)
@@ -37,28 +37,19 @@ print("********** COMPUTE SOLUTION **********")
 # Library solution
 start = time.monotonic_ns()
 Q, R = np.linalg.qr(A)
+x_np = np.matmul(np.linalg.inv(R), np.matmul(Q.T, b))
 done = time.monotonic_ns()
 elapsed = done - start
 print("numpy.linalg.qr: ns spent: ", elapsed)
-x_np = np.matmul(np.linalg.inv(R), np.matmul(Q.T, b))
+# x_np = np.matmul(np.linalg.inv(R), np.matmul(Q.T, b))
 
 # Our solution
 start = time.monotonic_ns()
-V, R = qr_factorization3(A)
+x = qr_method(A, b)
 done = time.monotonic_ns()
 elapsed = done - start
 # Ax = b <=> QRx = b <=> x = R^{-1} Q^{T} b
 # Compute Q^{T} b
-x = np.copy(b)
-for j, vi in enumerate(V):
-    aux1 = np.matmul(column_to_row(vi), x[j:]) # vi^T * b
-    vi.shape = (vi.shape[0], 1)
-    aux2 = 2*np.matmul(vi, aux1) # 2*vi*vi^T
-    x[j:] = x[j:] - aux2 # b - 2*vi*vi^T*b
-
-R = R[:n, :]
-R_inv = np.linalg.inv(R)
-x = np.matmul(R_inv, x[:R_inv.shape[1]])
 
 assert np.isclose(norm(x-x_np), 0, atol=1.e-5)
 
@@ -74,10 +65,11 @@ times = []
 sizes = range(n, m, 10)
 for k in tqdm.tqdm(sizes):
     A_ = A[:k, :]
+    b_ = b[:k]
     tries = []
     for i in range(TRIES):
         start = time.monotonic_ns()
-        V, R = qr_factorization3(A_)
+        x = qr_method(A_, b_)
         done = time.monotonic_ns()
         elapsed = done - start
         tries.append(elapsed)
@@ -105,16 +97,17 @@ plt.show()
 print("m>>n: Factorizing for various m...")
 times = []
 n = 5
-m_init = 10000
-m_end = 500000
-m_step = 5000
+m_init = 1000
+m_end = 50000
+m_step = 500
 sizes = range(m_init, m_end, m_step)
 for k in tqdm.tqdm(sizes):
     A_ = np.random.rand(k, n)
+    b_ = np.random.rand(k)
     tries = []
     for i in range(TRIES):
         start = time.monotonic_ns()
-        V, R = qr_factorization3(A_)
+        x = qr_method(A_, b_)
         done = time.monotonic_ns()
         elapsed = done - start
         tries.append(elapsed)
@@ -138,3 +131,16 @@ plt.ylabel("Time for QR factorization")
 plt.xlabel("Largest dimension of A")
 plt.title("Random matrix")
 plt.show()
+
+exit()
+# Maximum problem size
+k = 10
+print(virtual_memory())
+for count in range(10000):
+    print("Trying with k=", k)
+    print(virtual_memory())
+    A_ = np.random.rand(k, n)
+    b_ = np.random.rand(k)
+    x = qr_method(A_, b_)
+    k = k*2
+

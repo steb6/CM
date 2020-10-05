@@ -1,5 +1,6 @@
 import numpy as np
 from utils import norm, row_to_column, column_to_row
+import scipy.linalg.lapack as sy
 
 
 def householder_vector(x):
@@ -76,5 +77,21 @@ def qr_factorization3(x_):
         x_[j:, j+1:] = x_[j:, j+1:] - 2 * np.matmul(v_, np.matmul(column_to_row(v_), x_[j:, j+1:]))
         V.append(v_)
 
-    R_ = x_
+    R_ = x_[:n, :]
     return V, R_
+
+
+def qr_method(A_, b_):
+    V, R = qr_factorization3(A_)
+    m, n = A_.shape
+    x = np.copy(b_)
+    for j, vi in enumerate(V):
+        aux1 = np.matmul(column_to_row(vi), x[j:])  # vi^T * b
+        vi.shape = (vi.shape[0], 1)
+        aux2 = 2 * np.matmul(vi, aux1)  # 2*vi*vi^T
+        x[j:] = x[j:] - aux2  # b - 2*vi*vi^T*b
+
+    # R_inv = np.linalg.inv(R)
+    R_inv = sy.dtrtri(R)[0]
+    x = np.matmul(R_inv, x[:n])
+    return x

@@ -5,6 +5,7 @@
 \usepackage{ dsfont }
 \usepackage{amssymb}
 \usepackage{setspace}
+\usepackage{graphicx}
 
 % Questa linea raddoppia lo spazio tra una riga e l'altra per tutto il documento %
 \doublespacing
@@ -212,6 +213,40 @@ We will look how much our solutions are good in terms of residual and how much w
 We will check the condition angle of the problem, to understand how much our solution is stable, and we will compare it with a random matrix with the same dimension and range of values of the ML-cup one.
 Finally, we will test which is the maximum problem dimension computable for the two methods with a given RAM .
 Moreover, for the QR factorization, we are going to test how the computational cost scales varying the dimension $m$ over the 3 matrices $m \times m$, $m \times n$ with $m > n$ and $m \times n$ with $m \gg n$.
+
+\section{Results}\label{sec:results}
+For the time results we averaged 1000 run using \textit{time.monotonic\_ns()}, and we removed the best and worst 100 ones.
+With space we mean the additional number of bytes used by the methods in addition to the inputs, we measured it with \textit{numpy.array.nbytes}.
+                \begin{table}[h!]
+                    \begin{center}
+                        \caption{Results for ML-cup}
+                        \label{tab:table4}
+                        \begin{tabular}{l|c|c|c|r}
+                            \textbf{method} & \textbf{Time [ns]} & \textbf{Space [bytes]} & $\textbf{Ax - b}$ & $\textbf{Q}^{T}\textbf{(Ax - b)}$\\
+                            \hline
+                                CG & 0 & 0 & 0 & 0\\
+                                QR & 6298970 & 4416 & 348.20 & 2.79e-07
+                        \end{tabular}
+                    \end{center}
+                \end{table}
+The space used by the QR method is the number of bytes needed to save the square upper triangular matrix R ($23 \times 23$ floats) and to save the n $v_{i}$'s vector of floats with length in [1765, 1743].
+The computation to calculate x in done "in place", so no more space is required.
+The condition angle of this problem (calculated as $arccos\frac{\left\lVert A x \right\rVert}{\left\lVert b \right\rVert}$) is 0.45.
+As we can see, the solutions are similar in terms of residual, it can be observed that both are close to the true solution, because the value $Q^{T}(Ax - b)$ is close to zero for both, but the residual is big anyway.
+This happens because, as said before, the problem is ill-conditioned, so the best solution that we can find is still far away to give us a residual $\left\lVert Ax - b \right\rVert$ close to zero.
+        \begin{figure}
+            \includegraphics[width=\linewidth]{../results/square.png}
+            \caption{QR method: Computational time w.r.t. dimension n for square matrix $n \times n$}
+        \end{figure}
+        \begin{figure}
+            \includegraphics[width=\linewidth]{../results/little_m.png}
+            \caption{QR method: Computational time w.r.t. dimension m for tall thin matrix $m \times n$ with $m > n$}
+        \end{figure}
+        \begin{figure}
+            \includegraphics[width=\linewidth]{../results/big_m.png}
+            \caption{QR method: Computational time w.r.t. dimension m for tall thin matrix mxn with $m \gg n$}
+        \end{figure}
+
 \bibliography{bibliography}
 \bibliographystyle{unsrt}
 

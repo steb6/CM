@@ -1,13 +1,6 @@
 import numpy as np
 from utils import transpose_matrix, norm
 
-
-def is_pos_def(x):
-    return np.all(np.linalg.eigvals(x) > 0) and is_symmetric(x)
-
-def is_symmetric(a, rtol=1e-05, atol=1e-08):
-    return np.allclose(a, a.T, rtol=rtol, atol=atol)
-
 def conjugate_gradient(A, b, x0 = None, eps = None, maxIter = 1000):
     '''
     Performs conjugate gradient method to the function f(x) = 1/2(A*Ax) - x*A*b
@@ -16,7 +9,7 @@ def conjugate_gradient(A, b, x0 = None, eps = None, maxIter = 1000):
     :param x0: starting point, if None the 0 vector is used as default starting point
     :param eps: (optional, default value 1e-5) the accuracy in the stopping criterion
     :param maxIter:  (optional, default value 1000): the maximum number of iterations
-    :return: [x, status]: 
+    :return: [x, status, ite]: 
     :  - x (mx1 real column vector): it solves ||gradient(f(x))|| = A*Ax - A*b = 0
     :  - status (string): a string describing the status of the algorithm at
     :    termination 
@@ -24,6 +17,7 @@ def conjugate_gradient(A, b, x0 = None, eps = None, maxIter = 1000):
     :                 the norm of the gradient at x is less than the required threshold
     :    = 'finished': the algorithm terminated in m iterations since no treshold of accuracy is required
     :    = 'stopped': the algorithm terminated having exhausted the maximum number of iterations
+    :  - ite: number of iterations executed by the algorithm
     '''
     if x0 is None:
         x = np.zeros(A.shape[1])
@@ -46,7 +40,7 @@ def conjugate_gradient(A, b, x0 = None, eps = None, maxIter = 1000):
         x = x + alpha*d
         r = r - alpha*Ad
         g = np.matmul(transpose_matrix(A), r)
-        i = i+1
+        
         if eps is None: 
             # no stopping condition, we end up in m iterations or when the norm of the gradient is zero
             if not np.any(g):
@@ -63,7 +57,12 @@ def conjugate_gradient(A, b, x0 = None, eps = None, maxIter = 1000):
             if i > maxIter:
                 status = "stopped"
                 break
-    return x, status               
+            
+        i = i+1
+        
+    print("||g|| = ", norm(g))
+
+    return x, status, i-1               
 
 
 

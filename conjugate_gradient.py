@@ -35,6 +35,7 @@ def conjugate_gradient(A, b, x0 = None, eps = None, maxIter = 1000):
             g_1 = g
             beta = -np.divide(np.square(norm(g_1)),np.square(norm(g_2)))
             d = g_1 - beta*d   
+            #print("Space used ", r.nbytes+d.nbytes+x.nbytes+g.nbytes+g_1.nbytes+g_2.nbytes)
         Ad = np.matmul(A, d) 
         alpha = np.divide(np.square(norm(g_1)),np.square(norm(Ad)))
         x = x + alpha*d
@@ -60,7 +61,7 @@ def conjugate_gradient(A, b, x0 = None, eps = None, maxIter = 1000):
             
         i = i+1
         
-    print("||g|| = ", norm(g))
+    #print("||g|| = ", norm(g))
 
     return x, status, i-1               
 

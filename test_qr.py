@@ -65,7 +65,8 @@ print("||Ax - b|| = ", norm(np.matmul(A, x) - b))
 print("||Ax - b||/||b|| =", np.divide(norm(np.matmul(A, x) - b), norm(b)))
 print("||Q^T (Ax - b)||", norm(np.matmul(Q.T, np.matmul(A, x) - b)))
 print("Conditioning angle: ", conditioning_angle(A, b, x))
-
+print("||A^TAx - A^TB||", norm(np.matmul(A.T, np.matmul(A, x)) - np.matmul(A.T, b)))
+print("||A^T(Ax - b)||", norm(np.matmul(A.T, np.matmul(A, x) - b)))
 # Solution found with numpy.linalg.lstsq
 print("********** numpy.linalg.lstsq solution **********")
 start = time.monotonic_ns()

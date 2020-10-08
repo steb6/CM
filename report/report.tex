@@ -217,23 +217,50 @@ Moreover, for the QR factorization, we are going to test how the computational c
 \section{Results}\label{sec:results}
 For the time results we averaged 1000 run using \textit{time.monotonic\_ns()}, and we removed the best and worst 100 ones.
 With space we mean the additional number of bytes used by the methods in addition to the inputs, we measured it with \textit{numpy.array.nbytes}.
-                \begin{table}[h!]
-                    \begin{center}
-                        \caption{Results for ML-cup}
-                        \label{tab:table4}
-                        \begin{tabular}{l|c|c|c|c|r}
-                            \textbf{method} & \textbf{Time [ns]} & \textbf{Space [bytes]} & $\|\textbf{Ax - b}\|$ & $\|\textbf{A}^{T}\textbf{Ax} - \textbf{A}^{T}\textbf{b}\|$ & $\|\textbf{Q}^{T}\textbf{(Ax - b)}\|$\\
-                            \hline
-                                CG & 1557500 & 15040 & 348.20 & 7.86e-03 & - \\
-                                QR & 6298970 & 4416 & 348.20 & - & 2.79e-07
-                        \end{tabular}
-                    \end{center}
-                \end{table}
-The space used by the QR method is the number of bytes needed to save the square upper triangular matrix R ($23 \times 23$ floats) and to save the n $v_{i}$'s vector of floats with length in [1765, 1743].
-The computation to calculate x in done "in place", so no more space is required. The CG method stores five $n$-vectors ($x, d, g, g_{i-1}$ and $g_{i-2}$) and one $m$-vector ($r$) for each iteration but since we don't need to keep whole ‘history’ we can rewrite them every time. So the total space for CG is $(23\times5 + 1765)\times8 = 15040$.
-The condition angle of this problem (calculated as $arccos\frac{\left\lVert A x \right\rVert}{\left\lVert b \right\rVert}$) is 0.45.
-As we can see, the solutions are similar in terms of residual, it can be observed that both are close to the true solution, because the value $A^{T}Ax - A^{T}b$ for the CG method and $Q^{T}(Ax - b)$ for the QR method are close to zero for both, but the residual is big anyway.
-This happens because, as said before, the problem is ill-conditioned, so the best solution that we can find is still far away to give us a residual $\left\lVert Ax - b \right\rVert$ close to zero.
+\begin{table}[h!]
+    \begin{center}
+        \caption{Results for ML-cup}
+        \label{tab:table4}
+        \begin{tabular}{l|c|c|c|c|r}
+            \textbf{method} & \textbf{Time [ns]} & \textbf{Space [bytes]} & $\|\textbf{Ax - b}\|$ & $\|\textbf{A}^{T}(\textbf{Ax} - \textbf{b})\|$ & $\|\textbf{Q}^{T}\textbf{(Ax - b)}\|$\\
+            \hline
+            CG & 1557500 & 15040 & 348.20 & 7.86e-03 & - \\
+            QR & 6298970 & 322736 & 348.20 & 3.83e-05 & 2.79e-07
+        \end{tabular}
+    \end{center}
+\end{table}
+The CG method is $\sim 4$ times faster than the QR method: for the QR method we need n steps to compute the n $v_{i}$'s vector and the matrix $R$, while the CG method is an iterative method and we can chose after how many iterations to stop.
+
+The space used by the QR method, if we assume that we don't want to preserve the input matrix A (that will become the upper triangular matrix R), is the number of bytes needed to save the n $v_{i}$'s vector of floats with length in [1765, 1743], and it is $\sim 1725 \times 23 \times 8$.
+The computation to calculate x is done "in place", so no more space is required.
+The CG method stores five $n$-vectors ($x, d, g, g_{i-1}$ and $g_{i-2}$) and one $m$-vector ($r$) for each iteration but since we don't need to keep whole ‘history’ we can rewrite them every time.
+So the total space for CG is $(23\times5 + 1765)\times8 = 15040$.
+\\The solution have a similar residual $\left\lVert Ax - b \right\rVert$, but looking at the value $\left\lVert A^{T}(Ax - b)\right\rVert$, we can say that the QR solution is two order of magnitude closer to the true solution.
+Anyway the residual is quite big because it is problem dependent and it tells us how well we can extract $b$ from $Im(A)$.
+% Anyway, the solutions are similar in terms of residual, it can be observed that both are close to the true solution, because the value $A^{T}Ax - A^{T}b$ for the CG method and $Q^{T}(Ax - b)$ for the QR method are close to zero for both, but the residual is big anyway.
+If we assume to have a RAM of 4 GB and we fix n, we can compute the maximum computable dimension of m.
+\begin{table}[h!]
+    \begin{center}
+        \caption{Maximum problem size with 4 GB of RAM, n independent and m dependent}
+        \label{tab:table5}
+        \begin{tabular}{l|c|c|c|r}
+            \textbf{} & \textbf{n = 10} & \textbf{n = 100} & \textbf{n = 1000} & \textbf{n = 10000}\\
+            \hline
+            \textbf{CG max m} & $50 \times 10^{6}$ & $50 \times 10^{5}$ & $50 \times 10^{4}$ & $50 \times 10^{3}$\\
+            \textbf{QR max m} & $\sim 500 \times 10^{6}$ & $\sim 500 \times 10^{6}$ & $\sim 500 \times 10^{6}$ & $\sim 500 \times 10^{6}$
+        \end{tabular}
+    \end{center}
+\end{table}
+
+We notice that the maximum number of rows in the QR algorithm decrease linearly w.r.t the dimension n, while in the CG it decrease only by a factor $n \times 5$, and so the CG is more suitable for tall thin matrices, and for big matrices in general.
+\\The condition angle of this problem (calculated as $arccos\frac{\left\lVert A x \right\rVert}{\left\lVert b \right\rVert}$) is 0.45, while for a random matrix with same dimensions and range of values it is 0.82.
+%This happens because the best solution that we can find is still far away to give us a residual $\left\lVert Ax - b \right\rVert$ close to zero, and it can be arbitrarily large because it depends on the problem, and how well we can extract $b$ from $Im(A)$.
+\\By looking at the plots, we see that the QR methods scales quadratically for square matrices, almost linearly for $m>n$ and linearly for $m\gg n$ as expected.
+In all the 3 cases, CG outperform QR in terms of time.
+         \begin{figure}
+            \includegraphics[width=\linewidth]{../results/cg_accuracy.png}
+            \caption{CG accuracy: number of iterations required to get a specific accuracy value with the CG method applied to our problem}
+        \end{figure}
         \begin{figure}
             \includegraphics[width=\linewidth]{../results/square.png}
             \caption{QR and CG methods: Computational time w.r.t. dimension n for square matrix $n \times n$}
@@ -245,10 +272,6 @@ This happens because, as said before, the problem is ill-conditioned, so the bes
         \begin{figure}
             \includegraphics[width=\linewidth]{../results/big_m.png}
             \caption{QR and CG methods: Computational time w.r.t. dimension m for tall thin matrix mxn with $m \gg n$}
-        \end{figure}
-         \begin{figure}
-            \includegraphics[width=\linewidth]{../results/cg_accuracy.png}
-            \caption{CG accuracy: number of iterations required to get a specific accuracy value with the CG method applied to our problem}
         \end{figure}
 
 \bibliography{bibliography}

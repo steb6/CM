@@ -83,7 +83,10 @@ def qr_factorization3(x_):
 
 def qr_method(A_, b_):
     V, R = qr_factorization3(A_)
-    # print("Space used ", np.array(V).nbytes+np.array(R).nbytes)
+    # space = 0
+    # for elem in V:
+    #    space += elem.nbytes
+    # print("Space used ", space)
     m, n = A_.shape
     x = np.copy(b_)
     for j, vi in enumerate(V):

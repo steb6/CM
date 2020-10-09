@@ -14,7 +14,7 @@ from numpy.linalg import lstsq
 # Number of tries to compute mean
 TRIES = 20
 # Number of first/last elements to remove from tries
-CUT = 5
+CUT = 8
 
 # Read data
 A, b = read_data('data/ML-CUP19-TR.csv', add_augmented_columns=True)
@@ -63,10 +63,14 @@ assert np.isclose(norm(x-x_np), 0, atol=1.e-5)
 print("our implementation: ns spent: ", elapsed)
 print("||Ax - b|| = ", norm(np.matmul(A, x) - b))
 print("||Ax - b||/||b|| =", np.divide(norm(np.matmul(A, x) - b), norm(b)))
+print("||Ax - b||/(||A||*||x||)", norm(A)*norm(x))
 print("||Q^T (Ax - b)||", norm(np.matmul(Q.T, np.matmul(A, x) - b)))
 print("Conditioning angle: ", conditioning_angle(A, b, x))
 print("||A^TAx - A^TB||", norm(np.matmul(A.T, np.matmul(A, x)) - np.matmul(A.T, b)))
 print("||A^T(Ax - b)||", norm(np.matmul(A.T, np.matmul(A, x) - b)))
+print("||Ax - b||/||b|| * k(A)", np.divide(norm(np.matmul(A, x) - b), norm(b)) * np.linalg.cond(A))
+print("||k(A)/cos(theta)", np.linalg.cond(A)/np.cos(conditioning_angle(A, b, x)))
+print("||k(A) + k(A)^2 tan(theta)||", np.linalg.cond(A)+np.square(np.linalg.cond(A))*np.tan(conditioning_angle(A, b, x)))
 # Solution found with numpy.linalg.lstsq
 print("********** numpy.linalg.lstsq solution **********")
 start = time.monotonic_ns()

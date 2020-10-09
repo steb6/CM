@@ -74,7 +74,6 @@ and now we can chose $x$ such that $R_{1}x - Q_{1}^{T}b = 0$, which is $x = R_{1
 We can write $x = R^{-1}(Q^{T}b) = R^{-1}(((I-2v_{1}v_{1}^{T})(I-2v_{2}v_{2}^{T})\dots(I-2v_{m}v_{m}^{T}))^{T}b)$
 Finally we should have $x  = \arg\!\min_{x \in  \mathds{R}^n}\|Ax - b\| = R_{1}^{-1}Q_{1}^{T}b$ and $\|Ax - b\| = \|Q_{2}^{T}b\|$.
 
-\newpage
 \section{What to expect from the algorithms}\label{sec:what-to-expect-from-the-algorithms}
 
 \subsection{Conjugate Gradient}\label{subsec:conjugate-gradient}
@@ -215,8 +214,6 @@ Finally, we will test which is the maximum problem dimension computable for the 
 Moreover, for the QR factorization, we are going to test how the computational cost scales varying the dimension $m$ over the 3 matrices $m \times m$, $m \times n$ with $m > n$ and $m \times n$ with $m \gg n$.
 
 \section{Results}\label{sec:results}
-For the time results we averaged 1000 run using \textit{time.monotonic\_ns()}, and we removed the best and worst 100 ones.
-With space we mean the additional number of bytes used by the methods in addition to the inputs, we measured it with \textit{numpy.array.nbytes}.
 \begin{table}[h!]
     \begin{center}
         \caption{Results for ML-cup}
@@ -229,50 +226,77 @@ With space we mean the additional number of bytes used by the methods in additio
         \end{tabular}
     \end{center}
 \end{table}
-The CG method is $\sim 4$ times faster than the QR method: for the QR method we need n steps to compute the n $v_{i}$'s vector and the matrix $R$, while the CG method is an iterative method and we can chose after how many iterations to stop.
 
+\subsection{Time}\label{subsec:time}
+For the time results we averaged 1000 run using \textit{time.monotonic\_ns()}, and we removed the best and worst 100 ones.
+The CG method is $\sim 4$ times faster than the QR method: for the QR method we need n steps to compute the n $v_{i}$'s vector and the matrix $R$, while the CG method is an iterative method and we can chose after how many iterations to stop (CONSIDERAZIONI SUL FATTO CHE OLTRE UNA CERTA ACCURACY E QUINDI NUMERO DI ITERAZIONI LE COSE INIZIAVANO AD ANDARE MALE? FORSE È IL MOTIVO PER CUI IL RESIDUO DI CG È PIÙ ALTO DI QUELLO DI QR).
+
+\subsection{Space}\label{subsec:space}
+With space we mean the additional number of bytes used by the methods in addition to the inputs, we measured it with \textit{numpy.array.nbytes}.
 The space used by the QR method, if we assume that we don't want to preserve the input matrix A (that will become the upper triangular matrix R), is the number of bytes needed to save the n $v_{i}$'s vector of floats with length in [1765, 1743], and it is $\sim 1725 \times 23 \times 8$.
 The computation to calculate x is done "in place", so no more space is required.
 The CG method stores five $n$-vectors ($x, d, g, g_{i-1}$ and $g_{i-2}$) and one $m$-vector ($r$) for each iteration but since we don't need to keep whole ‘history’ we can rewrite them every time.
 So the total space for CG is $(23\times5 + 1765)\times8 = 15040$.
-\\The solution have a similar residual $\left\lVert Ax - b \right\rVert$, but looking at the value $\left\lVert A^{T}(Ax - b)\right\rVert$, we can say that the QR solution is two order of magnitude closer to the true solution.
+If we assume to have a RAM of 4 GB and we fix $n$, we can compute the maximum computable dimension of m that we call $M$.
+We obtain that, if $n=10$, $M_{QR} = 50 \times 10^{6}$ and $M_{CG}\sim 500 \times 10^{6} (499999950)$, and with $n=10000$, $M_{QR} = 50 \times 10^{3}$ and still $M_{CG} \sim 500\times 10^{6} (499950000)$.
+The maximum dimension in case of square matrix $N$ is $N_{CG} = \frac{RAM}{48} = 500 \times 10^{9}$ and $N_{QR} = \sqrt{\frac{RAM}{8}} = 22360$.
+We can conclude that the space needed by CG is $O(n)$, while the space needed by QR is $O(n^{2})$, and so the CG method is more suitable for large matrices in terms of space.
+
+\subsection{Quality of solution}\label{subsec:quality-of-solution}
+The angle $\theta$ between $Ax$ and $b$ is telling us how well we can approximate $b$ from $Ax$, and the bigger it is, the higher is the changing in the solution $x$ w.r.t a small change in $b$.
+We compute it as $\arccos(\frac{\left\lVert Ax \right\rVert}{\left\lVert b \right\rVert})$, and its value is 0.45.
+To understand if this value is big or not, we compared it with the one obtained with random inputs $A$ and $b$ with same dimensions and range of values, and we obtained 0.82, so this value doesn't seem to be such big.
+Anyway, the condition number of the matrix A is big ($k(A) \sim 400000$), and if we compute the condition number w.r.t input b we obtain $k_{rel, b\rightarrow x} \leq \frac{k(A)}{\cos(\theta)} \sim 450000$ and w.r.t input A we obtain $k_{rel, A \rightarrow x} \leq k(A) + k(A)^{2} \tan(\theta) \sim 80\times 10^{9}$
+So the problem is highly conditioned, specially for $A$ w.r.t $x$.
+The solution have a similar residual $\left\lVert Ax - b \right\rVert$, but looking at the value $\left\lVert A^{T}(Ax - b)\right\rVert$, we can say that the QR solution is two order of magnitude closer to the true solution.
 Anyway the residual is quite big because it is problem dependent and it tells us how well we can extract $b$ from $Im(A)$.
 % Anyway, the solutions are similar in terms of residual, it can be observed that both are close to the true solution, because the value $A^{T}Ax - A^{T}b$ for the CG method and $Q^{T}(Ax - b)$ for the QR method are close to zero for both, but the residual is big anyway.
-If we assume to have a RAM of 4 GB and we fix n, we can compute the maximum computable dimension of m.
-\begin{table}[h!]
-    \begin{center}
-        \caption{Maximum problem size with 4 GB of RAM, n independent and m dependent}
-        \label{tab:table5}
-        \begin{tabular}{l|c|c|c|r}
-            \textbf{} & \textbf{n = 10} & \textbf{n = 100} & \textbf{n = 1000} & \textbf{n = 10000}\\
-            \hline
-            \textbf{CG max m} & $50 \times 10^{6}$ & $50 \times 10^{5}$ & $50 \times 10^{4}$ & $50 \times 10^{3}$\\
-            \textbf{QR max m} & $\sim 500 \times 10^{6}$ & $\sim 500 \times 10^{6}$ & $\sim 500 \times 10^{6}$ & $\sim 500 \times 10^{6}$
-        \end{tabular}
-    \end{center}
-\end{table}
-
-We notice that the maximum number of rows in the QR algorithm decrease linearly w.r.t the dimension n, while in the CG it decrease only by a factor $n \times 5$, and so the CG is more suitable for tall thin matrices, and for big matrices in general.
-\\The condition angle of this problem (calculated as $arccos\frac{\left\lVert A x \right\rVert}{\left\lVert b \right\rVert}$) is 0.45, while for a random matrix with same dimensions and range of values it is 0.82.
-%This happens because the best solution that we can find is still far away to give us a residual $\left\lVert Ax - b \right\rVert$ close to zero, and it can be arbitrarily large because it depends on the problem, and how well we can extract $b$ from $Im(A)$.
-\\By looking at the plots, we see that the QR methods scales quadratically for square matrices, almost linearly for $m>n$ and linearly for $m\gg n$ as expected.
+%\begin{table}[h!]
+%    \begin{center}
+%        \caption{Maximum problem size with 4 GB of RAM, n independent and m dependent}
+%        \label{tab:table5}
+%        \begin{tabular}{l|c|c|c|r}
+%            \textbf{} & \textbf{n = 10} & \textbf{n = 100} & \textbf{n = 1000} & \textbf{n = 10000}\\
+%            \hline
+%            \textbf{CG max m} & $50 \times 10^{6}$ & $50 \times 10^{5}$ & $50 \times 10^{4}$ & $50 \times 10^{3}$\\
+%            \textbf{QR max m} & $\sim 500 \times 10^{6}$ & $\sim 500 \times 10^{6}$ & $\sim 500 \times 10^{6}$ & $\sim 500 \times 10^{6}$
+%        \end{tabular}
+%    \end{center}
+%\end{table}
+\subsection{Computational cost}\label{subsec:computational-cost}
+The computational cost of the QR method scales linearly with the largest dimension $m$ of the matrix $A$ of the ML-cup as expected [figure~\ref{qr_cost}].
+By looking at the plots, we see that the QR methods scales quadratically for square matrices [figure~\ref{square}], almost linearly for $m>n$ [figure~\ref{little_m}] and linearly for $m\gg n$ [figure~\ref{big_m}] as expected.
 In all the 3 cases, CG outperform QR in terms of time.
          \begin{figure}
             \includegraphics[width=\linewidth]{../results/cg_accuracy.png}
             \caption{CG accuracy: number of iterations required to get a specific accuracy value with the CG method applied to our problem}
         \end{figure}
+         \begin{figure}
+            \includegraphics[width=\linewidth]{../results/qr_linear_scaling.png}
+            \caption{QR computational time: time required to solve the ML-cup LS problem with the first m rows of A}
+             \label{qr_cost}
+        \end{figure}
         \begin{figure}
             \includegraphics[width=\linewidth]{../results/square.png}
             \caption{QR and CG methods: Computational time w.r.t. dimension n for square matrix $n \times n$}
+            \label{square}
         \end{figure}
         \begin{figure}
             \includegraphics[width=\linewidth]{../results/little_m.png}
             \caption{QR and CG methods: Computational time w.r.t. dimension m for tall thin matrix $m \times n$ with $m > n$}
+            \label{little_m}
         \end{figure}
         \begin{figure}
             \includegraphics[width=\linewidth]{../results/big_m.png}
             \caption{QR and CG methods: Computational time w.r.t. dimension m for tall thin matrix mxn with $m \gg n$}
+            \label{big_m}
         \end{figure}
+
+
+\section{Conclusion}\label{sec:conclusion}
+(ABBOZZATA IN DUE MINUTI, SI PUò ANCHE TOGLIERE IN QUANTO NON RICHIESTA, MA SENZA CONCLUSIONE MI SEMBRAVA UN POCHINO TRISTE)
+Both QR and CG methods did solve the high conditioned LS problem of ML-cup, but the QR method is two order of magnitude mode accurate and, as opposite as CG method, it doesn't require an initial point, a formula for $\beta$ and a number of iteration.
+Anyway, the CG method was $\sim 4$ times faster than the QR one, and it is more suitable for large problem because the space it needs is $O(n)$ instead of $O(n^{2})$.
 
 \bibliography{bibliography}
 \bibliographystyle{unsrt}

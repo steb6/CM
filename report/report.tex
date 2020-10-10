@@ -243,7 +243,7 @@ So the total space for CG is $(23\times5 + 1765)\times8 = 15040$.
 If we assume to have a RAM of 4 GB and we fix $n$, we can compute the maximum computable dimension of m that we call $M$.
 We obtain that, if $n=10$, $M_{QR} = 50 \times 10^{6}$ and $M_{CG}\sim 500 \times 10^{6} (499999950)$, and with $n=10000$, $M_{QR} = 50 \times 10^{3}$ and still $M_{CG} \sim 500\times 10^{6} (499950000)$.
 The maximum dimension in case of square matrix $N$ is $N_{CG} = \frac{RAM}{48} = 500 \times 10^{9}$ and $N_{QR} = \sqrt{\frac{RAM}{8}} = 22360$.
-We can conclude that the space needed by CG is $O(n)$, while the space needed by QR is $O(n^{2})$, and so the CG method is more suitable for large matrices in terms of space.
+We can conclude that the space needed by CG is $O(n+m)$, while the space needed by QR is $O(nm)$ for the general case. For square matrices ($n=m$) the space needed by the CG is $O(n)$ and the space needed by the QR is $O(n^{2})$. It turns out that the CG method is more suitable for large matrices in terms of space.
 
 \subsection{Quality of solution}\label{subsec:quality-of-solution}
 The angle $\theta$ between $Ax$ and $b$ is telling us how well we can approximate $b$ from $Ax$, and the bigger it is, the higher is the changing in the solution $x$ w.r.t a small change in $b$.
@@ -312,7 +312,7 @@ In all the 3 cases, CG outperform QR in terms of time.
 
 \section{Conclusion}\label{sec:conclusion}
 Both QR and CG methods did solve the high conditioned LS problem of ML-cup, but the QR method is two order of magnitude more accurate and, as opposite as CG method, it doesn't require an initial point, a formula for $\beta$ and a number of iteration.
-Anyway, the CG method was $\sim 4$ times faster than the QR one, and it is more suitable for large problem because the space it needs is $O(n)$ instead of $O(n^{2})$.
+Anyway, the CG method was $\sim 4$ times faster than the QR one, and it is more suitable for large problem because the space it needs is $O(n+m)$ instead of $O(nm)$ ($O(n)$ and $O(n^{2}$) respectively for square matrices). Finally, to reduce the condition number of the problem and hence to get a more accurate result with the CG method, it would be possible to apply the preconditioning technique. 
 
 \bibliography{bibliography}
 \bibliographystyle{unsrt}

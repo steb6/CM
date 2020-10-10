@@ -6,6 +6,7 @@
 \usepackage{amssymb}
 \usepackage{setspace}
 \usepackage{graphicx}
+\usepackage{subcaption}
 
 % Questa linea raddoppia lo spazio tra una riga e l'altra per tutto il documento %
 \doublespacing
@@ -87,7 +88,9 @@ The algorithm performs at every step two multiplications  (one is enough if we c
 So, the total cost is $n(O(mn) + O((nm)) + O(n)) \approx O(n^2m)$, where $O(n)$ comes from the scalars product between $n$-vectors to compute the norms for every steps.
 
 The convergence of the Conjugate Gradient Method depends on the maximum eigenvalue $\lambda_{max}$ and the minimum eigenvalue $\lambda_{min}$, and CG converges with rate 
-\\$\|x-x_{k}\| \leq \left\lVert\frac{\sqrt{\lambda_{max}}-\sqrt{\lambda_{min}}}{\sqrt{\lambda_{max}}+\sqrt{\lambda_{min}}}\right\rVert^{k} \leq \|x - x_{0}\|$
+\[
+\|x-x_{k}\| \leq \left\lVert\frac{\sqrt{\lambda_{max}}-\sqrt{\lambda_{min}}}{\sqrt{\lambda_{max}}+\sqrt{\lambda_{min}}}\right\rVert^{k} \leq \|x - x_{0}\| \label{eq:cgconv}
+\]
 
 \subsection{QR with HouseHolder}\label{subsec:qr-with-householder}
 The QR factorization has a cancellation problem during the Householder reflector construction that is easily fixed by summing first entry and norm instead of subtract it.
@@ -229,7 +232,7 @@ Moreover, for the QR factorization, we are going to test how the computational c
 
 \subsection{Time}\label{subsec:time}
 For the time results we averaged 1000 run using \textit{time.monotonic\_ns()}, and we removed the best and worst 100 ones.
-The CG method is $\sim 4$ times faster than the QR method: for the QR method we need n steps to compute the n $v_{i}$'s vector and the matrix $R$, while the CG method is an iterative method and we can choose after how many iterations to stop. In Table \ref{tab:table4} we report the results obtained performing the CG method for $n$ iterations, since theoretically this algorithm should return the exact solution after $n$ steps. However, after such a low number of iterations we fail to achieve a good accuracy. Plot in Fiugre \ref{cg_acc} shows how the number of iterations changes according to different levels of accuracy required by the algorithm. The maximum level of accuracy reached by the CG method applied to our problem is $\approx 10^{-11}$. After that the rounding-off errors accomulate a lot and the algorithm no longer converges. This is because our problem is ill conditioned.
+The CG method is $\sim 4$ times faster than the QR method: for the QR method we need n steps to compute the n $v_{i}$'s vector and the matrix $R$, while the CG method is an iterative method and we can choose after how many iterations to stop. In Table \ref{tab:table4} we report the results obtained performing the CG method for $n$ iterations, since theoretically this algorithm should return the exact solution after $n$ steps. However, after such a low number of iterations we fail to achieve a good accuracy. Plots in Fiugre \ref{cg_acc} show how the number of iterations changes according to different levels of accuracy required by the algorithm. The maximum level of accuracy reached by the CG method applied to our problem is $\approx 10^{-11}$ [figure \ref{cg_acc1}]. After that the rounding-off errors accomulate a lot and the algorithm no longer converges. This is because our problem is ill conditioned. In fact, if we execute the same approach to a random problem (random matrix $A$ and random vector $b$ with the same dimensions and the same ranges of values of our inputs) we note that [figure \ref{cg_acc2}] the number of iterations required to get the same accuracy is definitely lower. These graphs show also that the convergence of the CG method is almost linear, as \ref{eq:cgconv} states.
 
 \subsection{Space}\label{subsec:space}
 With space we mean the additional number of bytes used by the methods in addition to the inputs, we measured it with \textit{numpy.array.nbytes}.
@@ -268,10 +271,22 @@ The computational cost of the QR method scales linearly with the largest dimensi
 By looking at the plots, we see that the QR methods scales quadratically for square matrices [figure~\ref{square}], almost linearly for $m>n$ [figure~\ref{little_m}] and linearly for $m\gg n$ [figure~\ref{big_m}] as expected.
 In all the 3 cases, CG outperform QR in terms of time.
          \begin{figure}
-            \includegraphics[width=\linewidth]{../results/cg_accuracy.png}
-            \caption{CG accuracy: number of iterations required to get a specific accuracy value with the CG method applied to our problem}
-            \label{cg_acc}
-        \end{figure}
+		\centering
+		\begin{subfigure}{.5\textwidth}
+  		\centering
+ 		 \includegraphics[width=\textwidth]{../results/cg_accuracy.png}
+  		\caption{convergence of our problem}
+  		\label{cg_acc1}
+		\end{subfigure}%
+		\begin{subfigure}{.5\textwidth}
+ 		 \centering
+ 		 \includegraphics[width=\textwidth]{../results/cg_accuracy_rand.png}
+ 		 \caption{convergence of a random problem}
+ 		 \label{cg_acc2}
+		\end{subfigure}
+		\caption{CG accuracy: number of iterations required to get a specific accuracy value }
+		\label{cg_acc}
+	\end{figure}
          \begin{figure}
             \includegraphics[width=\linewidth]{../results/qr_linear_scaling.png}
             \caption{QR computational time: time required to solve the ML-cup LS problem with the first m rows of A}
@@ -292,11 +307,11 @@ In all the 3 cases, CG outperform QR in terms of time.
             \caption{QR and CG methods: Computational time w.r.t. dimension m for tall thin matrix mxn with $m \gg n$}
             \label{big_m}
         \end{figure}
+	
 
 
 \section{Conclusion}\label{sec:conclusion}
-(ABBOZZATA IN DUE MINUTI, SI PUò ANCHE TOGLIERE IN QUANTO NON RICHIESTA, MA SENZA CONCLUSIONE MI SEMBRAVA UN POCHINO TRISTE)
-Both QR and CG methods did solve the high conditioned LS problem of ML-cup, but the QR method is two order of magnitude mode accurate and, as opposite as CG method, it doesn't require an initial point, a formula for $\beta$ and a number of iteration.
+Both QR and CG methods did solve the high conditioned LS problem of ML-cup, but the QR method is two order of magnitude more accurate and, as opposite as CG method, it doesn't require an initial point, a formula for $\beta$ and a number of iteration.
 Anyway, the CG method was $\sim 4$ times faster than the QR one, and it is more suitable for large problem because the space it needs is $O(n)$ instead of $O(n^{2})$.
 
 \bibliography{bibliography}

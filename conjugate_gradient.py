@@ -61,7 +61,6 @@ def conjugate_gradient(A, b, x0 = None, eps = None, maxIter = 1000):
             
         i = i+1
         
-    #print("||g|| = ", norm(g))
 
     return x, status, i-1               
 

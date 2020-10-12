@@ -9,6 +9,7 @@ from numpy.linalg import lstsq
 from utils import conditioning_angle
 from psutil import virtual_memory
 from numpy.linalg import lstsq
+from scipy.linalg import solve_triangular
 
 # Parameters:
 # Number of tries to compute mean
@@ -34,14 +35,19 @@ assert np.isclose(check.min(), A.min()) and np.isclose(check.max(), A.max())
 print("Condition number of random matrix with same dimension and range of values of A is " + str(np.linalg.cond(check)))
 
 # Compute solution
-print("********** COMPUTE SOLUTION **********")
+print("********** COMPUTE SOLUTION WITH LIBRARY**********")
 # Library solution
 start = time.monotonic_ns()
 Q, R = np.linalg.qr(A)
-x_np = np.matmul(np.linalg.inv(R), np.matmul(Q.T, b))
+# x_np = np.matmul(np.linalg.inv(R), np.matmul(Q.T, b))
+x_np = solve_triangular(R, np.matmul(Q.T, b))
 done = time.monotonic_ns()
 elapsed = done - start
 print("numpy.linalg.qr: ns spent: ", elapsed)
+print("||Ax - b||/||b|| =", np.divide(norm(np.matmul(A, x_np) - b), norm(b)))
+print("||A^T(Ax - b)||", norm(np.matmul(A.T, np.matmul(A, x_np) - b)))
+print("||Q^T (Ax - b)||", norm(np.matmul(Q.T, np.matmul(A, x_np) - b)))
+print("Space used by Q and R: ", Q.nbytes+R.nbytes)
 # x_np = np.matmul(np.linalg.inv(R), np.matmul(Q.T, b))
 
 # Our solution 6090093 6046052 6604075 5895389 7058815 6167695
@@ -59,7 +65,7 @@ qr_tries = qr_tries[100:]
 print(qr_tries.mean())
 
 assert np.isclose(norm(x-x_np), 0, atol=1.e-5)
-
+print("********** COMPUTE SOLUTION WITH OUR IMPLEMENTATION **********")
 print("our implementation: ns spent: ", elapsed)
 print("||Ax - b|| = ", norm(np.matmul(A, x) - b))
 print("||Ax - b||/||b|| =", np.divide(norm(np.matmul(A, x) - b), norm(b)))

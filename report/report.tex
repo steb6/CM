@@ -152,7 +152,7 @@ The Algorithm 1 performs the CG method applied to our function \eqref{eq:cgfunct
 \end{algorithmic}
 \end{algorithm}
 \subsection{QR factorization method code}\label{subsec:qr-code}
-In line 6 of Algorithm 4, we used \textit{scipy.linalg.lapack.dtrtri} to compute the inverse of \textit{R}, which is the optimized method for upper-triangular matrices.
+In line 6 of Algorithm 4, we used \textit{scipy.linalg.solve\_triangular} to compute the solution of the linear system $R_{1}x = Q_{1}^{T}b$ by back-substitution, where $Q_{1}^{T}b$ is the vector computed by implicit product.
  % Householder reflector pseudocode
 \makeatletter
 \def\BState{\State\hskip-\ALG@thistlm}
@@ -222,10 +222,11 @@ Moreover, for the QR factorization, we are going to test how the computational c
         \caption{Results for ML-cup}
         \label{tab:table4}
         \begin{tabular}{l|c|c|c|c|r}
-            \textbf{method} & \textbf{Time [ns]} & \textbf{Space [bytes]} & $\|\textbf{Ax - b}\|$ & $\|\textbf{A}^{T}(\textbf{Ax} - \textbf{b})\|$ & $\|\textbf{Q}^{T}\textbf{(Ax - b)}\|$\\
+            \textbf{method} & \textbf{Time [ns]} & \textbf{Space [bytes]} & $\frac{\|\textbf{Ax - b}\|}{\left\lVert b \right\rVert}$ & $\|\textbf{A}^{T}(\textbf{Ax} - \textbf{b})\|$ & $\|\textbf{Q}^{T}\textbf{(Ax - b)}\|$\\
             \hline
             CG & 1557500 & 15040 & 348.20 & 7.86e-03 & - \\
-            QR & 6298970 & 322736 & 348.20 & 3.83e-05 & 2.79e-07
+            QR & 5813172 & 322736 & 0.4369 & 1.4766e-07 & 1.6231-e09 \\
+            np.linalg.qr & 1308946 & 328992 & 0.4369 & 2.3783e-07 & 1.6379e-09
         \end{tabular}
     \end{center}
 \end{table}
@@ -238,6 +239,7 @@ The CG method is $\sim 4$ times faster than the QR method: for the QR method we 
 With space we mean the additional number of bytes used by the methods in addition to the inputs, we measured it with \textit{numpy.array.nbytes}.
 The space used by the QR method, if we assume that we don't want to preserve the input matrix A (that will become the upper triangular matrix R), is the number of bytes needed to save the n $v_{i}$'s vector of floats with length in [1765, 1743], and it is $\sim 1725 \times 23 \times 8$.
 The computation to calculate x is done "in place", so no more space is required.
+There is a little difference between the space used by our implementation and the one of numpy, because we don't form the matrix $Q$ of size $m \times n$, but we have $n$ vector of size $m, m-1, \dots, m-n$.
 The CG method stores five $n$-vectors ($x, d, g, g_{i-1}$ and $g_{i-2}$) and one $m$-vector ($r$) for each iteration but since we don't need to keep whole ‘history’ we can rewrite them every time.
 So the total space for CG is $(23\times5 + 1765)\times8 = 15040$.
 If we assume to have a RAM of 4 GB and we fix $n$, we can compute the maximum computable dimension of m that we call $M$.

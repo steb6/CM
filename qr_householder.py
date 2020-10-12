@@ -1,6 +1,7 @@
 import numpy as np
 from utils import norm, row_to_column, column_to_row
 import scipy.linalg.lapack as sy
+from scipy.linalg import solve_triangular
 import sys
 
 def householder_vector(x):
@@ -96,6 +97,7 @@ def qr_method(A_, b_):
         x[j:] = x[j:] - aux2  # b - 2*vi*vi^T*b
 
     # R_inv = np.linalg.inv(R)
-    R_inv = sy.dtrtri(R)[0]
-    x = np.matmul(R_inv, x[:n])
+    # R_inv = sy.dtrtri(R)[0]
+    # x = np.matmul(R_inv, x[:n])
+    x = solve_triangular(R, x[:n])
     return x

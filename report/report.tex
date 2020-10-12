@@ -47,9 +47,9 @@ and so to find the closest vector to $b$ inside the hyperplane $Im(A)$.
 % Conjugate gradiend method %
 \subsection{First algorithm: Conjugate Gradient Method}\label{subsec:conjugate-gradient-method}
 In general, if a square matrix $B = B^{T}$ is positive definite, then we can find a solution to $Bx = c$ by minimizing the (strictly convex) function 
-\[
-f(x) = \frac{1}{2}x^{T}Bx - c^{T}x \tag{1} \label{eq:cgfunction}
-\]
+\begin{equation}\label{eq:cgfunction}
+f(x) = \frac{1}{2}x^{T}Bx - c^{T}x  
+\end{equation}
 (that is equal to set $\nabla f(x) = Bx - c = 0$). However our matrix $A$ is a \emph{tall thin matrix} and since in this case finding a solution to  $Ax = b$ is equivalent to solving the normal equations
 \[
 A^{T}Ax - A^{T}b = 0
@@ -58,7 +58,7 @@ then we can use \textit{Conjugate gradient} method to minimize the function
 \[
 f(x) = \frac{1}{2}x^{T}A^{T}Ax - x^{T}A^{T}b
 \]
-From now on we set $B = A^{T}A$ and $c = A^{T}b$ so our function to minimize become exactly the \eqref{eq:cgfunction}, where $B$ is positive definite. 
+From now on we set $B = A^{T}A$ and $c = A^{T}b$ so our function to minimize become exactly the (\ref{eq:cgfunction}), where $B$ is positive definite. 
 \\We remember that \begin{itemize}
 \item \textbf{B-orthogonal}: $x, y \in R^{m}$ are B-orthogonal if $x^{T}By = 0$
 \item \textbf{B-norm}: the B-norm of $x \in R^{m}$ is $\|x\|_{B} := (x^{t}Bx)^{\frac{1}{2}}$. Note that if B is \textit{positive definite}, then the B-norm is $\geq 0$ (it is $0$ only for the $0$ vector)
@@ -88,9 +88,9 @@ The algorithm performs at every step two multiplications  (one is enough if we c
 So, the total cost is $n(O(mn) + O((nm)) + O(n)) \approx O(n^2m)$, where $O(n)$ comes from the scalars product between $n$-vectors to compute the norms for every steps.
 
 The convergence of the Conjugate Gradient Method depends on the maximum eigenvalue $\lambda_{max}$ and the minimum eigenvalue $\lambda_{min}$, and CG converges with rate 
-\[
-\|x-x_{k}\| \leq \left\lVert\frac{\sqrt{\lambda_{max}}-\sqrt{\lambda_{min}}}{\sqrt{\lambda_{max}}+\sqrt{\lambda_{min}}}\right\rVert^{k} \leq \|x - x_{0}\| \label{eq:cgconv}
-\]
+\begin{equation}\label{eq:cgconv}
+\|x-x_{k}\| \leq \left\lVert\frac{\sqrt{\lambda_{max}}-\sqrt{\lambda_{min}}}{\sqrt{\lambda_{max}}+\sqrt{\lambda_{min}}}\right\rVert^{k} \leq \|x - x_{0}\| 
+\end{equation}
 
 \subsection{QR with HouseHolder}\label{subsec:qr-with-householder}
 The QR factorization has a cancellation problem during the Householder reflector construction that is easily fixed by summing first entry and norm instead of subtract it.
@@ -123,7 +123,7 @@ So the final shape of $A$ is $(1765, 23)$.
 \section{Code}\label{sec:code}
 The code has been implemented in \textit{Python}, we used \textit{Numpy} for array manipulation.
 \subsection{Conjugate gradient method Code}
-The Algorithm 1 performs the CG method applied to our function \eqref{eq:cgfunction}, starting from an initial guess of $x$. For each iteration we store the pruduct $Ad_k$ in a variable so that it can be computed only once insted of twice.
+The Algorithm 1 performs the CG method applied to our function \ref{eq:cgfunction}, starting from an initial guess of $x$. For each iteration we store the pruduct $Ad_k$ in a variable so that it can be computed only once insted of twice.
 % CG pseudocode
 \makeatletter
 \makeatother
@@ -233,7 +233,7 @@ Moreover, for the QR factorization, we are going to test how the computational c
 
 \subsection{Time}\label{subsec:time}
 For the time results we averaged 1000 run using \textit{time.monotonic\_ns()}, and we removed the best and worst 100 ones.
-The CG method is $\sim 4$ times faster than the QR method: for the QR method we need n steps to compute the n $v_{i}$'s vector and the matrix $R$, while the CG method is an iterative method and we can choose after how many iterations to stop. In Table \ref{tab:table4} we report the results obtained performing the CG method for $n$ iterations, since theoretically this algorithm should return the exact solution after $n$ steps. However, after such a low number of iterations we fail to achieve a good accuracy. Plots in Fiugre \ref{cg_acc} show how the number of iterations changes according to different levels of accuracy required by the algorithm. The maximum level of accuracy reached by the CG method applied to our problem is $\approx 10^{-11}$ [figure \ref{cg_acc1}]. After that the rounding-off errors accomulate a lot and the algorithm no longer converges. This is because our problem is ill conditioned. In fact, if we execute the same approach to a random problem (random matrix $A$ and random vector $b$ with the same dimensions and the same ranges of values of our inputs) we note that [figure \ref{cg_acc2}] the number of iterations required to get the same accuracy is definitely lower. These graphs show also that the convergence of the CG method is almost linear, as \ref{eq:cgconv} states.
+The CG method is $\sim 4$ times faster than the QR method: for the QR method we need n steps to compute the n $v_{i}$'s vector and the matrix $R$, while the CG method is an iterative method and we can choose after how many iterations to stop. In Table \ref{tab:table4} we report the results obtained performing the CG method for $n$ iterations, since theoretically this algorithm should return the exact solution after $n$ steps. However, after such a low number of iterations we fail to achieve a good accuracy. Plots in Fiugre \ref{cg_acc} show how the number of iterations changes according to different levels of accuracy required by the algorithm. The maximum level of accuracy reached by the CG method applied to our problem is $\approx 10^{-11}$ [figure \ref{cg_acc1}]. After that the rounding-off errors accomulate a lot and the algorithm no longer converges. This is because our problem is ill conditioned. In fact, if we execute the same approach to a random problem (random matrix $A$ and random vector $b$ with the same dimensions and the same ranges of values of our inputs) we note that [figure \ref{cg_acc2}] the number of iterations required to get the same accuracy is definitely lower. These graphs show also that the convergence of the CG method is almost linear, as \eqref{eq:cgconv} states.
 
 \subsection{Space}\label{subsec:space}
 With space we mean the additional number of bytes used by the methods in addition to the inputs, we measured it with \textit{numpy.array.nbytes}.

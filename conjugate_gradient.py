@@ -41,6 +41,7 @@ def conjugate_gradient(A, b, x0 = None, eps = None, maxIter = 1000):
         x = x + alpha*d
         r = r - alpha*Ad
         g = np.matmul(transpose_matrix(A), r)
+        ng = norm(g)
         
         if eps is None: 
             # no stopping condition, we end up in m iterations or when the norm of the gradient is zero
@@ -52,7 +53,7 @@ def conjugate_gradient(A, b, x0 = None, eps = None, maxIter = 1000):
                 break
         else:
             # check accuracy for stopping condition
-            if norm(g) <= eps:
+            if ng <= eps:
                 status = "optimal"
                 break
             if i > maxIter:

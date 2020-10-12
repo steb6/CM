@@ -7,7 +7,7 @@ import tqdm
 import matplotlib.pyplot as plt
 from numpy.linalg import lstsq
 from conjugate_gradient import conjugate_gradient
-
+import random
 
 A, b = read_data('data/ML-CUP19-TR.csv')
 m, n = A.shape
@@ -24,11 +24,10 @@ print("||Ax - b|| = ", norm(np.matmul(A, x) - b))
 print("||Ax - b||/||b|| =", np.divide(norm(np.matmul(A, x) - b), norm(b)))
 print("||A*Ax - A*b|| =", norm(np.matmul(np.transpose(A),np.matmul(A, x)) - np.matmul(np.transpose(A),b)))
 
-
 Q, R = np.linalg.qr(A)
 print("||Q^T (Ax - b)||", norm(np.matmul(Q.T, np.matmul(A, x) - b)))
 
-# Library Leas Squares solution
+# Library Least Squares solution
 start = time.monotonic_ns()
 xnp = np.linalg.lstsq(A, b, rcond=None)
 done = time.monotonic_ns()
@@ -38,11 +37,11 @@ print("||Ax - b|| =", norm(np.matmul(A, xnp[0]) - b))
 print("||Ax - b||/||b|| =", np.divide(norm(np.matmul(A, xnp[0]) - b), norm(b)))
 print("||A*Ax - A*b|| =", norm(np.matmul(np.transpose(A),np.matmul(A, x)) - np.matmul(np.transpose(A),b)))
 
-
+# Execution time over 1000 tries
 cg_tries = []
 for count in tqdm.tqdm(range(1000)):
     start = time.monotonic_ns()
-    x, status, ite = conjugate_gradient(A, b)
+    x, _, _ = conjugate_gradient(A, b)
     done = time.monotonic_ns()
     elapsed = done - start
     cg_tries.append(elapsed)
@@ -52,6 +51,7 @@ cg_tries = cg_tries[:-100]
 cg_tries = cg_tries[100:]
 print("Mean elapsed time over 1000 tries: ",  cg_tries.mean())
 
+# How CG converges with different eps
 acc = []
 for exponent in range(-11, 0):
     acc.append(10**exponent)
@@ -68,8 +68,8 @@ b_ = (((b_ - b_min) / (b_max - b_min)) * (b.max() - b.min())) + b.min()
 iterations = []
 iterations_ = []
 for eps in acc:
-    x, status, ite = conjugate_gradient(A, b, eps = eps, maxIter=1000000)
-    x_, status_, ite_ = conjugate_gradient(A_, b_, eps = eps, maxIter=1000000)
+    x, _, ite = conjugate_gradient(A, b, eps = eps, maxIter=1000000)
+    x_, _, ite_ = conjugate_gradient(A_, b_, eps = eps, maxIter=1000000)
     iterations.append(ite)
     iterations_.append(ite_)
     
@@ -86,4 +86,69 @@ plt.xlabel("Number of iterations")
 plt.ylabel("Accuracy")
 plt.yscale('log',basey=10) 
 plt.savefig("results/cg_accuracy_rand.png")
+plt.show()
+'''
+# Different initial starting point
+xcg, _, _ = conjugate_gradient(A, b, eps = 1.e-5)
+xzeros = np.zeros(A.shape[1])
+#xrand = [random.uniform(xcg.min(), xcg.max()) for _ in range(A.shape[1])]
+#xrand1 = [random.uniform(xcg.min()*-10, xcg.max()*10) for _ in range(A.shape[1])]
+xrand = [x+random.randint(-5,5) for x in xnp[0]]
+xrand1 = [x*random.randint(-10,10) for x in xnp[0]]
+xrand2 = [random.uniform(xcg.min(), xcg.max()) for _ in range(A.shape[1])]
+xrand3 = [random.uniform(xcg.min()*-10, xcg.max()*10) for _ in range(A.shape[1])]
+x0s = [xnp[0], xcg, xrand, xzeros, xrand1, xrand2, xrand3]
+norms = []
+accs = []
+for x0 in x0s:
+    #print("Starting point: ", x0)
+    diff = norm(xnp[0]-x0)
+    norms.append(diff)
+    print("||x - x0||", diff)
+    x, _, _ = conjugate_gradient(A, b, x0)
+    accuracy =  norm(np.matmul(np.transpose(A),np.matmul(A, x)) - np.matmul(np.transpose(A),b))
+    accs.append(accuracy)
+    print("||A*Ax - A*b|| =", accuracy)
+
+# Creating plot
+print("Creating plot...")
+plt.plot(norms, accs)
+plt.xlabel("||x-x0||")
+plt.ylabel("Accuracy")
+plt.yscale('log',basey=10) 
+plt.savefig("results/cg_x0.png")
+plt.show()
+'''
+# Different initial starting point
+xcg, _, _ = conjugate_gradient(A, b, eps = 1.e-11)
+xzeros = np.zeros(A.shape[1])
+#xrand = [random.uniform(xcg.min(), xcg.max()) for _ in range(A.shape[1])]
+#xrand1 = [random.uniform(xcg.min()*-10, xcg.max()*10) for _ in range(A.shape[1])]
+xrand = [x+random.randint(-5,5) for x in xnp[0]]
+xrand1 = [x*random.randint(-10,10) for x in xnp[0]]
+xrand2 = [random.uniform(xcg.min(), xcg.max()) for _ in range(A.shape[1])]
+xrand3 = [random.uniform(xcg.min()*-10, xcg.max()*10) for _ in range(A.shape[1])]
+xrand4 = [random.uniform(xcg.min()*-20, xcg.max()*20) for _ in range(A.shape[1])]
+xrand5 = [random.uniform(xcg.min()*-30, xcg.max()*30) for _ in range(A.shape[1])]
+x0s = [xnp[0], xcg, xrand, xzeros, xrand1, xrand2, xrand3, xrand4, xrand5]
+norms = []
+iterations = []
+for x0 in x0s:
+    #print("Starting point: ", x0)
+    diff = norm(xnp[0]-x0)
+    norms.append(diff)
+    print("||x - x0||", diff)
+    x, _, ite = conjugate_gradient(A, b, x0, eps = 1.e-11, maxIter=1000000)
+    accuracy =  norm(np.matmul(np.transpose(A),np.matmul(A, x)) - np.matmul(np.transpose(A),b))
+    iterations.append(ite)
+    print("iterations: ", ite)
+    print("||A*Ax - A*b|| =", accuracy)
+norms, iterations = zip(*sorted(zip(norms, iterations)))
+norms, iterations = (list(t) for t in zip(*sorted(zip(norms, iterations))))
+# Creating plot
+print("Creating plot...")
+plt.plot(norms, iterations)
+plt.xlabel("||x-x0||")
+plt.ylabel("Iterations")
+plt.savefig("results/cg_x0_ite.png")
 plt.show()

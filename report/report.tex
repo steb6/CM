@@ -89,7 +89,7 @@ So, the total cost is $n(O(mn) + O((nm)) + O(n)) \approx O(n^2m)$, where $O(n)$ 
 
 The convergence of the Conjugate Gradient Method depends on the maximum eigenvalue $\lambda_{max}$ and the minimum eigenvalue $\lambda_{min}$, and CG converges with rate 
 \begin{equation}\label{eq:cgconv}
-\|x-x_{k}\| \leq \left\lVert\frac{\sqrt{\lambda_{max}}-\sqrt{\lambda_{min}}}{\sqrt{\lambda_{max}}+\sqrt{\lambda_{min}}}\right\rVert^{k} \leq \|x - x_{0}\| 
+\|x-x_{k}\| \leq \left\lVert\frac{\sqrt{\lambda_{max}}-\sqrt{\lambda_{min}}}{\sqrt{\lambda_{max}}+\sqrt{\lambda_{min}}}\right\rVert^{k}  \|x - x_{0}\| 
 \end{equation}
 
 \subsection{QR with HouseHolder}\label{subsec:qr-with-householder}
@@ -224,8 +224,8 @@ Moreover, for the QR factorization, we are going to test how the computational c
         \begin{tabular}{l|c|c|c|c|r}
             \textbf{method} & \textbf{Time [ns]} & \textbf{Space [bytes]} & $\frac{\|\textbf{Ax - b}\|}{\left\lVert b \right\rVert}$ & $\|\textbf{A}^{T}(\textbf{Ax} - \textbf{b})\|$ & $\|\textbf{Q}^{T}\textbf{(Ax - b)}\|$\\
             \hline
-            CG & 1557500 & 15040 & 348.20 & 7.86e-03 & - \\
-            QR & 5813172 & 322736 & 0.4369 & 1.4766e-07 & 1.6231-e09 \\
+            CG & 1557500 & 15040 & 0.4369 & 7.86e-03 & - \\
+            QR & 5813172 & 322736 & 0.4369 & 1.4766e-07 & 1.6231e-09 \\
             np.linalg.qr & 1308946 & 328992 & 0.4369 & 2.3783e-07 & 1.6379e-09
         \end{tabular}
     \end{center}
@@ -233,8 +233,7 @@ Moreover, for the QR factorization, we are going to test how the computational c
 
 \subsection{Time}\label{subsec:time}
 For the time results we averaged 1000 run using \textit{time.monotonic\_ns()}, and we removed the best and worst 100 ones.
-The CG method is $\sim 4$ times faster than the QR method: for the QR method we need n steps to compute the n $v_{i}$'s vector and the matrix $R$, while the CG method is an iterative method and we can choose after how many iterations to stop. In Table \ref{tab:table4} we report the results obtained performing the CG method for $n$ iterations, since theoretically this algorithm should return the exact solution after $n$ steps. However, after such a low number of iterations we fail to achieve a good accuracy. Plots in Fiugre \ref{cg_acc} show how the number of iterations changes according to different levels of accuracy required by the algorithm. The maximum level of accuracy reached by the CG method applied to our problem is $\approx 10^{-11}$ [figure \ref{cg_acc1}]. After that the rounding-off errors accomulate a lot and the algorithm no longer converges. This is because our problem is ill conditioned. In fact, if we execute the same approach to a random problem (random matrix $A$ and random vector $b$ with the same dimensions and the same ranges of values of our inputs) we note that [figure \ref{cg_acc2}] the number of iterations required to get the same accuracy is definitely lower. These graphs show also that the convergence of the CG method is almost linear, as \eqref{eq:cgconv} states.
-
+The CG method is $\sim 4$ times faster than the QR method: for the QR method we need n steps to compute the n $v_{i}$'s vector and the matrix $R$, while the CG method is an iterative method and we can choose after how many iterations to stop. In Table \ref{tab:table4} we report the results obtained performing the CG method for $n$ iterations, since theoretically this algorithm should return the exact solution after $n$ steps. However, after such a low number of iterations we fail to achieve a good accuracy. Plots in Fiugre \ref{cg_acc} show how the number of iterations changes according to different levels of accuracy required by the algorithm. The maximum level of accuracy reached by the CG method applied to our problem is $\approx 10^{-11}$ [figure \ref{cg_acc1}]. After that the rounding-off errors accomulate a lot and the algorithm no longer converges. This is because our problem is ill conditioned. In fact, if we execute the same approach to a random problem (random matrix $A$ and random vector $b$ with the same dimensions and the same ranges of values of our inputs) we note that [figure \ref{cg_acc2}] the number of iterations required to get the same accuracy is definitely lower. These graphs show also that the convergence of the CG method is almost linear, as formula \eqref{eq:cgconv} states. For what concerns the choice of the initial vector $x_0$ we used the 0 vector for all the experiments. Since our function to minimize is a convex function, whatever starting point we choose the algorithm converges to the (unique) optimal solution. In Figure \ref{cg_x0} we report in how many iterations the CG method converges to the optimal solution with a fixed level of accuracy ($10^{-11}$) with different starting point. We note that if we start close to the optimal solution the algorithm requires few iterations while if we choose a starting vector far away from the optimum the number of iterations increases until it reaches a constant trend. In fact, from \eqref{eq:cgconv} follows that the rate of convergence is determined by the distance between the initial vector and the optimal solution. So it is preferable to start with an initial guess close to the optimum but since we don't have such estimate, the 0 vector is a good trade-off.   
 \subsection{Space}\label{subsec:space}
 With space we mean the additional number of bytes used by the methods in addition to the inputs, we measured it with \textit{numpy.array.nbytes}.
 The space used by the QR method, if we assume that we don't want to preserve the input matrix A (that will become the upper triangular matrix R), is the number of bytes needed to save the n $v_{i}$'s vector of floats with length in [1765, 1743], and it is $\sim 1725 \times 23 \times 8$.
@@ -289,6 +288,11 @@ In all the 3 cases, CG outperform QR in terms of time.
 		\caption{CG accuracy: number of iterations required to get a specific accuracy value }
 		\label{cg_acc}
 	\end{figure}
+	\begin{figure}
+            \includegraphics[width=\linewidth]{../results/cg_x0_ite.png}
+            \caption{CG with different starting point: the red star is the 0 vector}
+             \label{cg_x0}
+       \end{figure}
          \begin{figure}
             \includegraphics[width=\linewidth]{../results/qr_linear_scaling.png}
             \caption{QR computational time: time required to solve the ML-cup LS problem with the first m rows of A}

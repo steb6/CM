@@ -5,76 +5,55 @@ from qr_householder import qr_method
 from conjugate_gradient import conjugate_gradient
 import matplotlib.pyplot as plt
 from numpy.linalg import lstsq
-import os
 
 # Parameters
-TRIES = 20
-CUT = 4
+TRIES = 10
+CUT = 3
 
-# Now with m=n
-if not os.path.isfile("results/square.npy"):
-    print("SQUARE: Solving for various n...")
-    times = []
+# Type of matrices, remove from here to jump some tests
+MATRICES = ["square", "little_m", "big_m"]
+
+# Iterate over type of matrices and get right dimensions
+for matrix in MATRICES:
+    if matrix is "square":
+        n = 0
+        m_init = 10
+        m_end = 1000
+        m_step = 50
+    elif matrix is "little_m":
+        n = 50
+        m_init = 50
+        m_end = 500
+        m_step = 5
+    elif matrix is "big_m":
+        n = 5
+        m_init = 500
+        m_end = 50000
+        m_step = 500
+    else:
+        n = 0
+        m_init = 0
+        m_end = 0
+        m_step = 0
+        exit()
+    # Set up range of dimensions
+    print("Testing " + matrix + " matrix")
+    times_qr = []
     times_cg = []
-    m_init = 10
-    m_end = 2000
-    m_step = 50
     sizes = range(m_init, m_end, m_step)
+    # For every dimensions to test
     for k in tqdm.tqdm(sizes):
-        A_ = np.random.rand(k, k)
+        # Select square or tall thin matrix and b
+        if matrix is "square":
+            A_ = np.random.rand(k, k)
+        else:
+            A_ = np.random.rand(k, n)
         b_ = np.random.rand(k)
-        start = time.monotonic_ns()
-        x = qr_method(A_, b_)
-        done = time.monotonic_ns()
-        elapsed = done - start
-        times.append(elapsed)
-
-        start = time.monotonic_ns()
-        x = conjugate_gradient(A_, b_)
-        done = time.monotonic_ns()
-        elapsed = done - start
-        times_cg.append(elapsed)        
-
-    with open("results/square.npy", "wb") as f:
-        np.save(f, sizes)
-        np.save(f, times)
-
-    # Creating plot
-    print("Creating plot...")
-    times = [elem/1000000 for elem in times]
-    times_cg = [elem/1000000 for elem in times_cg]
-    x = np.array(sizes)
-    y = np.array(times)
-    A = np.vstack([x, np.ones(len(x))]).T
-    m, c = lstsq(A, y, rcond=None)[0]
-    plt.plot(x, m*x + c, 'r', label='Fitted line')
-    plt.plot(sizes, times, label='QR Times')
-    plt.plot(sizes, times_cg, 'g', label='CG Times')
-    plt.legend()
-    plt.ylabel("Time for QR and CG methods")
-    plt.xlabel("Dimension n of square matrix A nxn")
-    plt.title("Random matrix")
-    plt.savefig("results/square.png")
-    plt.clf()
-
-# Now with m>n ********************************************************************************************************
-if not os.path.isfile("results/little_m.npy"):
-    print("m>n: Solving for various m...")
-    times = []
-    times_cg = []
-    n = 50
-    m_init = 50
-    m_end = 500
-    m_step = 5
-    sizes = range(m_init, m_end, m_step)
-    for k in tqdm.tqdm(sizes):
+        # In order to have smoother lines, compute TRIES times and cut first and last CUT ones for QR
         tries = []
-        A_ = np.random.rand(k, n)
-        b_ = np.random.rand(k)
-        tries = []
-        for i in range(TRIES):
+        for _ in range(TRIES):
             start = time.monotonic_ns()
-            x = qr_method(A_, b_)
+            _ = qr_method(A_, b_)
             done = time.monotonic_ns()
             elapsed = done - start
             tries.append(elapsed)
@@ -82,12 +61,12 @@ if not os.path.isfile("results/little_m.npy"):
         tries.sort()
         tries = tries[:-CUT]
         tries = tries[CUT:]
-        times.append(tries.mean())
-        
+        times_qr.append(tries.mean())
+        # Do the same with CG
         tries_cg = []
-        for i in range(TRIES):
+        for _ in range(TRIES):
             start = time.monotonic_ns()
-            x, status = conjugate_gradient(A_, b_)
+            _, _, _ = conjugate_gradient(A_, b_)
             done = time.monotonic_ns()
             elapsed = done - start
             tries_cg.append(elapsed)
@@ -97,86 +76,30 @@ if not os.path.isfile("results/little_m.npy"):
         tries_cg = tries_cg[CUT:]
         times_cg.append(tries_cg.mean())
 
-    with open("results/little_m.npy", "wb") as f:
-        np.save(f, sizes)
-        np.save(f, times)
-        np.save(f, times_cg)
+    # Save sizes and times for both methods
+    np.savetxt("results/qr_" + matrix + ".txt", (sizes, times_qr))
+    np.savetxt("results/cg_" + matrix + ".txt", (sizes, times_cg))
 
     # Creating plot
     print("Creating plot...")
-    times = [elem/1000000 for elem in times]
-    times_cg = [elem/1000000 for elem in times_cg]
-    x = np.array(sizes)
-    y = np.array(times)
-    A = np.vstack([x, np.ones(len(x))]).T
-    m, c = lstsq(A, y, rcond=None)[0]
-    plt.plot(x, m*x + c, 'r', label='Fitted line')
-    plt.plot(sizes, times, label='QR Times')
+    times_qr = [elem / 1000000 for elem in times_qr]
+    times_cg = [elem / 1000000 for elem in times_cg]
+    # Fitted line only for the square one
+    if matrix is not "square":
+        x = np.array(sizes)
+        y = np.array(times_qr)
+        A = np.vstack([x, np.ones(len(x))]).T
+        m, c = lstsq(A, y, rcond=None)[0]
+        plt.plot(x, m * x + c, 'r', label='Fitted line for QR times')
+    plt.plot(sizes, times_qr, label='QR Times')
     plt.plot(sizes, times_cg, 'g', label='CG Times')
     plt.legend()
-    plt.ylabel("Time for QR and CG methods")
-    plt.xlabel("Largest dimension of A with m>n")
-    plt.title("Random matrix")
-    plt.savefig("results/little_m.png")
-    plt.clf()
-
-# Now with m>>n *******************************************************************************************************
-if not os.path.isfile("results/big_m.npy"):
-    print("m>>n: Solving for various m...")
-    times = []
-    times_cg = []
-    n = 5
-    m_init = 500
-    m_end = 50000
-    m_step = 500
-    sizes = range(m_init, m_end, m_step)
-    for k in tqdm.tqdm(sizes):
-        A_ = np.random.rand(k, n)
-        b_ = np.random.rand(k)
-        tries = []
-        for i in range(TRIES):
-            start = time.monotonic_ns()
-            x = qr_method(A_, b_)
-            done = time.monotonic_ns()
-            elapsed = done - start
-            tries.append(elapsed)
-        tries = np.array(tries)
-        tries.sort()
-        tries = tries[:-CUT]
-        tries = tries[CUT:]
-        times.append(tries.mean())
-        
-        tries_cg = []
-        for i in range(TRIES):
-            start = time.monotonic_ns()
-            x, status = conjugate_gradient(A_, b_)
-            done = time.monotonic_ns()
-            elapsed = done - start
-            tries_cg.append(elapsed)
-        tries_cg = np.array(tries_cg)
-        tries_cg.sort()
-        tries_cg = tries_cg[:-CUT]
-        tries_cg = tries_cg[CUT:]
-        times_cg.append(tries_cg.mean())
-
-    with open("results/big_m.npy", "wb") as f:
-        np.save(f, sizes)
-        np.save(f, times)
-
-    # Creating plot
-    print("Creating plot...")
-    times = [elem/1000000 for elem in times]
-    times_cg = [elem/1000000 for elem in times_cg]
-    x = np.array(sizes)
-    y = np.array(times)
-    A = np.vstack([x, np.ones(len(x))]).T
-    m, c = lstsq(A, y, rcond=None)[0]
-    plt.plot(x, m*x + c, 'r', label='Fitted line')
-    plt.plot(sizes, times, label='QR Times')
-    plt.plot(sizes, times_cg, 'g', label='CG Times')
-    plt.legend()
-    plt.ylabel("Time for QR and CG methods")
-    plt.xlabel("Largest dimension of A with m>>n")
-    plt.title("Random matrix")
-    plt.savefig("results/big_m.png")
+    plt.ylabel("Times to compute x")
+    # Get right x label
+    if matrix is "square":
+        plt.xlabel("Dimensions of A")
+    else:
+        plt.xlabel("Largest dimension of A")
+    plt.title(matrix)
+    plt.savefig("results/" + matrix + ".png")
     plt.clf()

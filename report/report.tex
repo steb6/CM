@@ -241,7 +241,7 @@ Moreover, for the QR factorization, we are going to test how the computational c
             CG & 1557500 & 15040 & 0.4369 & 7.86e-03 & - \\
             QR & 5813172 & 322736 & 0.4369 & 1.4766e-07 & 1.6231e-09 \\
             np.linalg.qr & 1308946 & 328992 & 0.4369 & 2.3783e-07 & 1.6379e-09 \\
-            scipy.linalg.qr & 7631518 & 328992 & 0.4369 & 2.5920-e07 & 1.7830e-09
+            scipy.linalg.qr & 7631518 & 328992 & 0.4369 & 2.5920e-07 & 1.7830e-09
         \end{tabular}
     \end{center}
 \end{table}
@@ -321,7 +321,7 @@ In all the 3 cases, CG outperform QR in terms of time.
 	\end{figure}
 	\begin{figure}
             \includegraphics[width=\linewidth]{../results/cg_x0_ite.png}
-            \caption{CG with different starting point: the red star is the 0 vector}
+            \caption{CG with different starting points and with an accuracy of $10^{-11}$. The red star is the 0 vector}
              \label{cg_x0}
        \end{figure}
          \begin{figure}

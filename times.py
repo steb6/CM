@@ -1,7 +1,7 @@
 import tqdm
 import numpy as np
 import time
-from qr_householder import qr_method
+from qr_method import qr_method
 from conjugate_gradient import conjugate_gradient
 import matplotlib.pyplot as plt
 from numpy.linalg import lstsq

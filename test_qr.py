@@ -1,13 +1,11 @@
-from qr_householder import qr_method
+from qr_method import qr_method
 import numpy as np
 from numpy.linalg import norm
 from data_manager import read_data
 import time
 import matplotlib.pyplot as plt
 import tqdm
-from numpy.linalg import lstsq
 from utils import conditioning_angle
-from psutil import virtual_memory
 from numpy.linalg import lstsq
 from scipy.linalg import solve_triangular
 import scipy
@@ -35,14 +33,10 @@ check = (((check - c_min) / (c_max - c_min)) * (A.max() - A.min())) + A.min()
 assert np.isclose(check.min(), A.min()) and np.isclose(check.max(), A.max())
 print("Condition number of random matrix with same dimension and range of values of A is " + str(np.linalg.cond(check)))
 
-# Compute solution
-print("********** COMPUTE SOLUTION WITH LIBRARY**********")
-# Library solution
+# Compute solution with library
+print("********** COMPUTE SOLUTION WITH LIBRARY NUMPY**********")
 start = time.monotonic_ns()
-Q, R = scipy.linalg.qr(A, mode="economic")
-# R = R[:n]
-# Q = Q[:, :n]
-# x_np = np.matmul(np.linalg.inv(R), np.matmul(Q.T, b))
+Q, R = np.linalg.qr(A)
 x_np = solve_triangular(R, np.matmul(Q.T, b))
 done = time.monotonic_ns()
 elapsed = done - start
@@ -51,10 +45,23 @@ print("||Ax - b||/||b|| =", np.divide(norm(np.matmul(A, x_np) - b), norm(b)))
 print("||A^T(Ax - b)||", norm(np.matmul(A.T, np.matmul(A, x_np) - b)))
 print("||Q^T (Ax - b)||", norm(np.matmul(Q.T, np.matmul(A, x_np) - b)))
 print("Space used by Q and R: ", Q.nbytes+R.nbytes)
-# x_np = np.matmul(np.linalg.inv(R), np.matmul(Q.T, b))
 
-# Our solution 6090093 6046052 6604075 5895389 7058815 6167695
+# Compute solution with library
+print("********** COMPUTE SOLUTION WITH LIBRARY SCIPY**********")
+start = time.monotonic_ns()
+Q, R = scipy.linalg.qr(A, mode="economic")
+x_sp = solve_triangular(R, np.matmul(Q.T, b))
+done = time.monotonic_ns()
+elapsed = done - start
+print("scipy.linalg.qr: ns spent: ", elapsed)
+print("||Ax - b||/||b|| =", np.divide(norm(np.matmul(A, x_np) - b), norm(b)))
+print("||A^T(Ax - b)||", norm(np.matmul(A.T, np.matmul(A, x_np) - b)))
+print("||Q^T (Ax - b)||", norm(np.matmul(Q.T, np.matmul(A, x_np) - b)))
+print("Space used by Q and R: ", Q.nbytes+R.nbytes)
+
+# Compute solution with our method, averaging the times
 qr_tries = []
+x = None
 for count in tqdm.tqdm(range(1000)):
     start = time.monotonic_ns()
     x = qr_method(A, b)
@@ -67,7 +74,7 @@ qr_tries = qr_tries[:-100]
 qr_tries = qr_tries[100:]
 print(qr_tries.mean())
 
-assert np.isclose(norm(x-x_np), 0, atol=1.e-5)
+# assert np.isclose(norm(x-x_np), 0, atol=1.e-5)
 print("********** COMPUTE SOLUTION WITH OUR IMPLEMENTATION **********")
 print("our implementation: ns spent: ", elapsed)
 print("||Ax - b|| = ", norm(np.matmul(A, x) - b))
@@ -79,7 +86,9 @@ print("||A^TAx - A^TB||", norm(np.matmul(A.T, np.matmul(A, x)) - np.matmul(A.T, 
 print("||A^T(Ax - b)||", norm(np.matmul(A.T, np.matmul(A, x) - b)))
 print("||Ax - b||/||b|| * k(A)", np.divide(norm(np.matmul(A, x) - b), norm(b)) * np.linalg.cond(A))
 print("||k(A)/cos(theta)", np.linalg.cond(A)/np.cos(conditioning_angle(A, b, x)))
-print("||k(A) + k(A)^2 tan(theta)||", np.linalg.cond(A)+np.square(np.linalg.cond(A))*np.tan(conditioning_angle(A, b, x)))
+print("||k(A) + k(A)^2 tan(theta)||",
+      np.linalg.cond(A)+np.square(np.linalg.cond(A))*np.tan(conditioning_angle(A, b, x)))
+
 # Solution found with numpy.linalg.lstsq
 print("********** numpy.linalg.lstsq solution **********")
 start = time.monotonic_ns()
@@ -89,7 +98,6 @@ elapsed = done - start
 print("numpy lstsq resolution: ns spent: ", elapsed)
 print("||Ax - b|| = ", norm(np.matmul(A, x_lstsq) - b))
 print("||Ax - b||/||b|| =", np.divide(norm(np.matmul(A, x_lstsq) - b), norm(b)))
-print("||Q^T (Ax - b)||", norm(np.matmul(Q.T, np.matmul(A, x_lstsq) - b)))
 print("Conditioning angle: ", conditioning_angle(A, b, x_lstsq))
 
 # Solution with pseudoinverse
@@ -101,13 +109,13 @@ elapsed = done - start
 print("pseudoinverse resolution: ns spent: ", elapsed)
 print("||Ax - b|| = ", norm(np.matmul(A, x_lstsq) - b))
 print("||Ax - b||/||b|| =", np.divide(norm(np.matmul(A, x_lstsq) - b), norm(b)))
-print("||Q^T (Ax - b)||", norm(np.matmul(Q.T, np.matmul(A, x_lstsq) - b)))
 print("Conditioning angle: ", conditioning_angle(A, b, x_lstsq))
 
 # What if problem was well conditioned?
 print("********** What if problem were well conditioned? **********")
 A_ = np.random.rand(m, n)
 b_ = np.random.rand(m)
+# Rescale random matrix to have same range of values as ML-cup
 r_min = A_.min()
 r_max = A_.max()
 b_min = b_.min()
@@ -115,11 +123,9 @@ b_max = b_.max()
 A_ = (((A_ - r_min) / (r_max - r_min)) * (A.max() - A.min())) + A.min()
 b_ = (((b_ - b_min) / (b_max - b_min)) * (b.max() - b.min())) + b.min()
 x_r = qr_method(A_, b_)
-# print("our implementation: ns spent: ", elapsed)
 print("Condition number of matrix A is " + str(np.linalg.cond(A_)))
 print("||Ax - b|| = ", norm(np.matmul(A_, x_r) - b_))
 print("||Ax - b||/||b|| =", np.divide(norm(np.matmul(A_, x_r) - b_), norm(b_)))
-# print("||Q^T (Ax - b)||", norm(np.matmul(Q.T, np.matmul(A_, x_r) - b_)))
 print("Conditioning angle: ", conditioning_angle(A_, b_, x_r))
 
 # Check if computational cost scale with m
@@ -154,15 +160,3 @@ plt.ylabel("Time for QR factorization")
 plt.xlabel("Largest dimension of A")
 plt.title("ML-cup matrix")
 plt.show()
-
-exit()
-# Maximum problem size, about 83'000'000
-k = 10
-print(virtual_memory())
-for count in range(10000):
-    print("Trying with k=", k)
-    print(virtual_memory())
-    A_ = np.random.rand(k, n)
-    b_ = np.random.rand(k)
-    x = qr_method(A_, b_)
-    k = k*2

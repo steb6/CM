@@ -1,11 +1,9 @@
 import numpy as np
-#from utils import norm
 from numpy.linalg import norm
 from data_manager import read_data
 import time
 import tqdm
 import matplotlib.pyplot as plt
-from numpy.linalg import lstsq
 from conjugate_gradient import conjugate_gradient
 import random
 

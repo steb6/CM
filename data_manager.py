@@ -7,7 +7,7 @@ def read_data(filename, add_augmented_columns=True):
     A = genfromtxt(filename, delimiter=',')
 
     # Print dimensions
-    # print('Readed {} rows and {} column'.format(A.shape[0], A.shape[1]))
+    # print('Loaded {} rows and {} column'.format(A.shape[0], A.shape[1]))
 
     # Remove indexes
     A = A[:, 1:]

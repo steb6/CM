@@ -1,30 +1,31 @@
 import numpy as np
 from utils import transpose_matrix, norm
 
+
 def conjugate_gradient(A, b, x0 = None, eps = None, maxIter = 1000):
-    '''
+    """
     Performs conjugate gradient method to the function f(x) = 1/2(A*Ax) - x*A*b
     :param A: a matrix mxn
     :param b: a column vector nx1
     :param x0: starting point, if None the 0 vector is used as default starting point
     :param eps: (optional, default value 1e-5) the accuracy in the stopping criterion
     :param maxIter:  (optional, default value 1000): the maximum number of iterations
-    :return: [x, status, ite]: 
+    :return: [x, status, ite]:
     :  - x (mx1 real column vector): it solves ||gradient(f(x))|| = A*Ax - A*b = 0
     :  - status (string): a string describing the status of the algorithm at
-    :    termination 
-    :    = 'optimal': the algorithm terminated having proven that x is an optimal solution, i.e., 
+    :    termination
+    :    = 'optimal': the algorithm terminated having proven that x is an optimal solution, i.e.,
     :                 the norm of the gradient at x is less than the required threshold
-    :    = 'finished': the algorithm terminated in m iterations since no treshold of accuracy is required
+    :    = 'finished': the algorithm terminated in m iterations since no threshold of accuracy is required
     :    = 'stopped': the algorithm terminated having exhausted the maximum number of iterations
     :  - ite: number of iterations executed by the algorithm
-    '''
+    """
     if x0 is None:
         x = np.zeros(A.shape[1])
     else:
         x = x0
         
-    r =  b  - np.matmul(A, x)
+    r = b - np.matmul(A, x)
     g_0 = np.matmul(transpose_matrix(A), r)
     d = g_0
     g = g_1 = g_0
@@ -35,7 +36,7 @@ def conjugate_gradient(A, b, x0 = None, eps = None, maxIter = 1000):
             g_1 = g
             beta = -np.divide(np.square(norm(g_1)),np.square(norm(g_2)))
             d = g_1 - beta*d   
-            #print("Space used ", r.nbytes+d.nbytes+x.nbytes+g.nbytes+g_1.nbytes+g_2.nbytes)
+            # print("Space used ", r.nbytes+d.nbytes+x.nbytes+g.nbytes+g_1.nbytes+g_2.nbytes)
         Ad = np.matmul(A, d) 
         alpha = np.divide(np.square(norm(g_1)),np.square(norm(Ad)))
         x = x + alpha*d
@@ -61,9 +62,8 @@ def conjugate_gradient(A, b, x0 = None, eps = None, maxIter = 1000):
                 break
             
         i = i+1
-        
 
-    return x, status, i-1               
+    return x, status, i-1
 
 
 

@@ -1,15 +1,15 @@
 # Computational mathematics for learning and data analysis [2019-2020]: project non-ML n°12 implementation
 ![Most significant result](/results/big_m.png)
 ## The problem
-###(P) 
+### (P) 
 is the linear least squares problem
 min<sub>w</sub>∥X<sup>+</sup>w−y∥
 where X<sup>+</sup> is the matrix obtained by augmenting the (tall thin) matrix X from the ML-cup dataset by prof. Micheli with a few functions of your choice of the features of the dataset, and y is one of the corresponding output vectors. For instance, if X contains columns [x1,x2], you may add functions such as log(x1), x1<sup>2</sup>, x1*x2, …
 
-###(A1)
+### (A1)
 is an algorithm of the class of Conjugate Gradient methods [references: *J. Nocedal, S. Wright, Numerical Optimization*].
 
-###(A2) 
+### (A2) 
 is thin QR factorization with Householder reflectors [*Trefethen, Bau, Numerical Linear Algebra, Lecture 10*], in the variant where one does not form the matrix Q, but stores the Householder vectors uk and uses them to perform (implicitly) products with Q and Q<sup>T</sup>.
 
 No off-the-shelf solvers allowed. In particular you must implement yourself the thin QR factorization, and the computational cost of your implementation should scale linearly with the largest dimension of the matrix X.

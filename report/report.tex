@@ -50,7 +50,8 @@ In general, if a square matrix $B = B^{T}$ is positive definite, then we can fin
 \begin{equation}\label{eq:cgfunction}
 f(x) = \frac{1}{2}x^{T}Bx - c^{T}x  
 \end{equation}
-(that is equal to set $\nabla f(x) = Bx - c = 0$). However our matrix $A$ is a \emph{tall thin matrix} and since in this case finding a solution to  $Ax = b$ is equivalent to solving the normal equations
+(that is equal to set $\nabla f(x) = Bx - c = 0$).
+However our matrix $A$ is a \emph{tall thin matrix} and since in this case finding a solution to  $Ax = b$ is equivalent to solving the normal equations
 \[
 A^{T}Ax - A^{T}b = 0
 \]
@@ -58,18 +59,22 @@ then we can use \textit{Conjugate gradient} method to minimize the function
 \[
 f(x) = \frac{1}{2}x^{T}A^{T}Ax - x^{T}A^{T}b
 \]
-From now on we set $B = A^{T}A$ and $c = A^{T}b$ so our function to minimize become exactly the (\ref{eq:cgfunction}), where $B$ is positive definite. 
+From now on we set $B = A^{T}A$ and $c = A^{T}b$ so our function to minimize become exactly the~\eqref{eq:cgfunction}, where $B$ is positive definite.
 \\We remember that \begin{itemize}
 \item \textbf{B-orthogonal}: $x, y \in R^{m}$ are B-orthogonal if $x^{T}By = 0$
-\item \textbf{B-norm}: the B-norm of $x \in R^{m}$ is $\|x\|_{B} := (x^{t}Bx)^{\frac{1}{2}}$. Note that if B is \textit{positive definite}, then the B-norm is $\geq 0$ (it is $0$ only for the $0$ vector)
+\item \textbf{B-norm}: the B-norm of $x \in R^{m}$ is $\|x\|_{B} := (x^{t}Bx)^{\frac{1}{2}}$.
+\item Note that if B is \textit{positive definite}, then the B-norm is $\geq 0$ (it is $0$ only for the $0$ vector)
 \end{itemize}
-Let $x_{k}$ be the parameter vector after the $k$-th iteration, then the residual vector is $r_{k} = b - Ax_{k}$ and the negative gradient $g_{k} = -\nabla f(x_{k}) = c - Bx = A^{T}b - A^{T}Ax = A^{T}r_{k}$. The step size $\alpha_{k}$ can be computed in a similar way as in the standard CG method, but here the denominator is $d_{k}^{T}Bd_k= d_{k}^{T}A^{T}Ad_k = \|Ad_{k}\|^2$ and so it can be obtained without calculating $B = A^{T}A$.
-\\To update the residual, we use the fact that $r_{k} = b - Ax_{k} = [x_{k} = x_{k-1} + \alpha_{k-1}d_{k-1}] = b - A(x_{k-1} + \alpha_{k-1}d_{k-1}) = [b-Ax_{k-1} = r_{k-1}] = r_{k-1} - \alpha_{k-1}Ad_{k-1}$. The trick about conjugate gradient is that at each step we generate a new search direction, which is not exactly the residual, but is the residual modified to be $B$-orthogonal to the previous search direction. In this way, $\beta_{k}$ is a scalar that is chosen s.t. $d_{k}$ is $B$-orthogonal to $d_{k-1}$.
+Let $x_{k}$ be the parameter vector after the $k$-th iteration, then the residual vector is $r_{k} = b - Ax_{k}$ and the negative gradient $g_{k} = -\nabla f(x_{k}) = c - Bx = A^{T}b - A^{T}Ax = A^{T}r_{k}$.
+The step size $\alpha_{k}$ can be computed in a similar way as in the standard CG method, but here the denominator is $d_{k}^{T}Bd_k= d_{k}^{T}A^{T}Ad_k = \|Ad_{k}\|^2$ and so it can be obtained without calculating $B = A^{T}A$.
+\\To update the residual, we use the fact that $r_{k} = b - Ax_{k} = [x_{k} = x_{k-1} + \alpha_{k-1}d_{k-1}] = b - A(x_{k-1} + \alpha_{k-1}d_{k-1}) = [b-Ax_{k-1} = r_{k-1}] = r_{k-1} - \alpha_{k-1}Ad_{k-1}$.
+The trick about conjugate gradient is that at each step we generate a new search direction, which is not exactly the residual, but is the residual modified to be $B$-orthogonal to the previous search direction.
+In this way, $\beta_{k}$ is a scalar that is chosen s.t. $d_{k}$ is $B$-orthogonal to $d_{k-1}$.
 
 % QR factorization method %
 \subsection{Second algorithm: QR factorization with Householder Reflectors}\label{subsec:qr-factorization-with-householder-reflectors}
 To solve the Least Square Problem, we use the \textit{thin QR factorization} with all the optimization seen (fast Householder-vector product, cancellation problem resolution, manually changing known entries) in order to factorize $A$ as $Q_{1}R_{1}$.
-We use a variant \cite{nla} of the \textit{thin QR factorization} where we do not form the matrix $Q$, but we keep the Householder vector $u_{k}$ to perform implicit product with $Q$ and $Q^{T}$.
+We use a variant~\cite{nla} of the \textit{thin QR factorization} where we do not form the matrix $Q$, but we keep the Householder vector $u_{k}$ to perform implicit product with $Q$ and $Q^{T}$.
 With this factorization, we can write $\|Ax - b\|$ as $\left\lVert \begin{bmatrix} R_{1}x - Q_{1}^{T}b \\ Q_{2}^{T}b\end{bmatrix} \right\lVert$
 and now we can chose $x$ such that $R_{1}x - Q_{1}^{T}b = 0$, which is $x = R_{1}^{-1}Q_{1}^{T}b$ (if $R_{1}$ is invertible).
 We can write $x = R^{-1}(Q^{T}b) = R^{-1}(((I-2v_{1}v_{1}^{T})(I-2v_{2}v_{2}^{T})\dots(I-2v_{m}v_{m}^{T}))^{T}b)$
@@ -78,16 +83,24 @@ Finally we should have $x  = \arg\!\min_{x \in  \mathds{R}^n}\|Ax - b\| = R_{1}^
 \section{What to expect from the algorithms}\label{sec:what-to-expect-from-the-algorithms}
 
 \subsection{Conjugate Gradient}\label{subsec:conjugate-gradient}
-Our system $Ax = b$ is equivalent to the system $Bx = c$, where $B = A^{T}A$ is symmetric and positive definite and $c = A^{T}b$. However, from a numerical point of view, the two systems are different, because of rounding-off errors that occur in joining the product $A^{T}A$. But since our algorithm does not involve the computation of $B = A^{T}A$, then we have the same convergence result as in the standard CG method. In particular we know that this method gives the solution in $n$ steps if no rounding-off error occurs, where $n$ is the size of $B$, namely the smallest size of our original rectangular matrix $A$. In realistic cases, the absence of rounding-off errors cannot be assured and so we need more than $n$ step or even to restart the algorithm many times. Also the basic relations concerning convergence ($<r_i,r_k>\,= 0, <Ad_i,d_k>\,= 0$ for $i \ne k$) will not be satisfied exactly and therefore $x_n$ will not be as good an estimate the exact solution as desired. From \cite{hestenes1952methods} follows that the larger the ratios $\alpha_i / \alpha_{i-1}$, the more rapidily the rounding-off errors accumulate. Moreover, since $\alpha_i$ lie on the range
+Our system $Ax = b$ is equivalent to the system $Bx = c$, where $B = A^{T}A$ is symmetric and positive definite and $c = A^{T}b$.
+However, from a numerical point of view, the two systems are different, because of rounding-off errors that occur in joining the product $A^{T}A$.
+But since our algorithm does not involve the computation of $B = A^{T}A$, then we have the same convergence result as in the standard CG method.
+In particular we know that this method gives the solution in $n$ steps if no rounding-off error occurs, where $n$ is the size of $B$, namely the smallest size of our original rectangular matrix $A$.
+In realistic cases, the absence of rounding-off errors cannot be assured and so we need more than $n$ step or even to restart the algorithm many times.
+Also the basic relations concerning convergence ($<r_i,r_k>\,= 0, <Ad_i,d_k>\,= 0$ for $i \ne k$) will not be satisfied exactly and therefore $x_n$ will not be as good an estimate the exact solution as desired.
+From~\cite{hestenes1952methods} follows that the larger the ratios $\alpha_i / \alpha_{i-1}$, the more rapidly the rounding-off errors accumulate.
+Moreover, since $\alpha_i$ lies on the range
 \[
-1 / \lambda_{max} < \alpha_i < 1 / \lambda_{min}
+1 / \lambda_{\max} < \alpha_i < 1 / \lambda_{\min}
 \] 
-the ratio $\rho = \lambda_{max}/\lambda_{min}$ gives us an upper bound of the critical ratio  $\alpha_i / \alpha_{i-1}$ which determines the stability of the entire process. So we would like to have $\rho$ near one, that means our matrix is near multiple of the identity and then the CG method is relatively stable. 
+the ratio $\rho = \lambda_{\max}/\lambda_{\min}$ gives us an upper bound of the critical ratio  $\alpha_i / \alpha_{i-1}$ which determines the stability of the entire process.
+So we would like to have $\rho$ near one, that means our matrix is near multiple of the identity and then the CG method is relatively stable.
 
-The algorithm performs at every step two multiplications  (one is enough if we compute it and store it) of $A$ with the $n$-vector $d_i$ $(O(mn))$ and one multiplication of $A^{T}$ with the $m$-vector $r_i$ $(O(nm))$. 
-So, the total cost is $n(O(mn) + O((nm)) + O(n)) \approx O(n^2m)$, where $O(n)$ comes from the scalars product between $n$-vectors to compute the norms for every steps.
+The algorithm performs at every step two multiplications  (one is enough if we compute it and store it) of $A$ with the $n$-vector $d_i$ $(O(mn))$ and one multiplication of $A^{T}$ with the $m$-vector $r_i$ $(O(nm))$.
+So, the total cost is $n(O(mn) + O((nm)) + O(n)) \approx O(n^{2m})$, where $O(n)$ comes from the scalars product between $n$-vectors to compute the norms for every steps.
 
-The convergence of the Conjugate Gradient Method depends on the maximum eigenvalue $\lambda_{max}$ and the minimum eigenvalue $\lambda_{min}$, and CG converges with rate 
+The convergence of the Conjugate Gradient Method depends on the maximum eigenvalue $\lambda_{\max}$ and the minimum eigenvalue $\lambda_{\min}$, and CG converges with rate
 \begin{equation}\label{eq:cgconv}
 \|x-x_{k}\| \leq \left\lVert\frac{\sqrt{\lambda_{max}}-\sqrt{\lambda_{min}}}{\sqrt{\lambda_{max}}+\sqrt{\lambda_{min}}}\right\rVert^{k}  \|x - x_{0}\| 
 \end{equation}
@@ -100,7 +113,7 @@ The computed $x$ solves the modified problem $\min \left\lVert Ax - (b + Q_{1}r)
 Moreover, $\frac{\left\lVert x - x^{*} \right\rVert}{ \left\lVert x^{*} \right\rVert} \leq k_{rel, b\rightarrow x}\frac{\left\lVert r \right\rVert}{\left\lVert b \right\rVert}$.
 \\The computational cost for thin QR factorization is $2mn^2 - \frac{2}{3}n^3 + O(mn)$ flops, which represents two cases: if $m \approx n$, we have that the cost is $\frac{4}{3}n^3$, if $m \gg n$ the cost scales like $2mn^2$, so it scales linearly with respect to the biggest dimension of A .
 \\Before we said that $x = R_{1}^{-1}Q_{1}^{T}b$, but to be able to calculate it we need $R_{1}$ to be invertible.
-We know that $A$ has full column rank $\iff Az \neq 0 \forall z \neq 0 \iff z^{T}A^{T}Az = \left\lVert Az \right\rVert^{2} \forall z \neq 0 \iff A^{T}A$ is positive definite $\iff$ all eigenvalues of $A^{T}A$ are $> 0\iff $0 is not an eigenvalue of $A^{T}A \iff A^{T}A = (Q_{1}R_{1})^{T}Q_{1}R_{1} = R_{1}^{T}Q_{1}^{T}Q_{1}R_{1} = R_{1}^{T}R_{1}$ is invertible $\iff det(A^{T}A) = det(R_{1}^{T})det(R_{1}) \neq 0 \iff det(R_{1}) \neq 0 \iff R_{1}$ is invertible.
+We know that $A$ has full column rank $\iff Az \neq 0 \forall z \neq 0 \iff z^{T}A^{T}Az = \left\lVert Az \right\rVert^{2} \forall z \neq 0 \iff A^{T}A$ is positive definite $\iff$ all eigenvalues of $A^{T}A$ are $> 0\iff $0 is not an eigenvalue of $A^{T}A \iff A^{T}A = (Q_{1}R_{1})^{T}Q_{1}R_{1} = R_{1}^{T}Q_{1}^{T}Q_{1}R_{1} = R_{1}^{T}R_{1}$ is invertible $\iff \det(A^{T}A) = \det(R_{1}^{T})\det(R_{1}) \neq 0 \iff \det(R_{1}) \neq 0 \iff R_{1}$ is invertible.
 So if $A$ has full column rank, $\min_{x \in \mathds{R}^n}\|Ax-b\|$ has solution and it is unique.
 $R_{1}$ is invertible also if all elements on its diagonal are $\neq 0$.
 \\The cost to solve $x = R_{1}^{-1}(Q_{1}^{T})b$ is a multiplication $c = (Q_{1}^{T})b$, which costs $O(mn)$, and the resolution of the triangular system $R_{1}x = c$ with back-substitution, which costs $O(n^{2})$.
@@ -118,12 +131,13 @@ Its shape is $(1765, 20)$, we augmented it with few functions of the features of
 So the final shape of $A$ is $(1765, 23)$.
     The condition number of the matrix $A$ (calculated with \textit{numpy.linalg.cond}, which does SVD and $\frac{\sigma_{1}}{\sigma_{n}}$) is $\approx 400000 (4 \times 10^{5})$, while the condition number of a random matrix with the same dimension and same range of values (min and max of the 2 matrices are the same) is $\approx 1.7$.
     We can conclude that the matrix $A$ is ill conditioned, so it is almost singular and the solution of our problem could be not accurate.
-    Anyway, we know that the solution of the least square problem exists and it is unique, because $A$ is a full column rank matrix ($rank(A) = n = 23$), where rank is calculated as the number of singular values $> \max(\sigma_{i}) \times max(m, n) \times eps$, which is the same approach used in MATLAB .
+    Anyway, we know that the solution of the least square problem exists and it is unique, because $A$ is a full column rank matrix ($rank(A) = n = 23$), where rank is calculated as the number of singular values $> \max(\sigma_{i}) \times \max(m, n) \times eps$, which is the same approach used in MATLAB .
 
 \section{Code}\label{sec:code}
 The code has been implemented in \textit{Python}, we used \textit{Numpy} for array manipulation.
-\subsection{Conjugate gradient method Code}
-The Algorithm 1 performs the CG method applied to our function \ref{eq:cgfunction}, starting from an initial guess of $x$. For each iteration we store the pruduct $Ad_k$ in a variable so that it can be computed only once insted of twice.
+\subsection{Conjugate gradient method Code}\label{subsec:conjugate-gradient-method-code}
+The Algorithm 1 performs the CG method applied to our function~\ref{eq:cgfunction}, starting from an initial guess of $x$.
+For each iteration we store the pruduct $Ad_k$ in a variable so that it can be computed only once insted of twice.
 % CG pseudocode
 \makeatletter
 \makeatother
@@ -235,19 +249,19 @@ Moreover, for the QR factorization, we are going to test how the computational c
 \subsection{Time}\label{subsec:time}
 For the time results we averaged 1000 run using \textit{time.monotonic\_ns()}, and we removed the best and worst 100 ones.
 The CG method is $\sim 4$ times faster than the QR method: for the QR method we need n steps to compute the n $v_{i}$'s vector and the matrix $R$, while the CG method is an iterative method and we can choose after how many iterations to stop.
-In Table \ref{tab:table4} we report the results obtained performing the CG method for $n$ iterations, since theoretically this algorithm should return the exact solution after $n$ steps.
+In Table~\ref{tab:table4} we report the results obtained performing the CG method for $n$ iterations, since theoretically this algorithm should return the exact solution after $n$ steps.
 However, after such a low number of iterations we fail to achieve a good accuracy.
-Plots in Fiugre \ref{cg_acc} show how the number of iterations changes according to different levels of accuracy required by the algorithm.
-The maximum level of accuracy reached by the CG method applied to our problem is $\approx 10^{-11}$ [figure \ref{cg_acc1}].
-After that the rounding-off errors accomulate a lot and the algorithm no longer converges.
+Plots in Figure~\ref{cg_acc} show how the number of iterations changes according to different levels of accuracy required by the algorithm.
+The maximum level of accuracy reached by the CG method applied to our problem is $\approx 10^{-11}$ [figure~\ref{cg_acc1}].
+After that the rounding-off errors accumulate a lot and the algorithm no longer converges.
 This is because our problem is ill conditioned.
-In fact, if we execute the same approach to a random problem (random matrix $A$ and random vector $b$ with the same dimensions and the same ranges of values of our inputs) we note that [figure \ref{cg_acc2}] the number of iterations required to get the same accuracy is definitely lower.
-These graphs show also that the convergence of the CG method is almost linear, as formula \eqref{eq:cgconv} states.
+In fact, if we execute the same approach to a random problem (random matrix $A$ and random vector $b$ with the same dimensions and the same ranges of values of our inputs) we note that [figure~\ref{cg_acc2}] the number of iterations required to get the same accuracy is definitely lower.
+These graphs show also that the convergence of the CG method is almost linear, as formula~\eqref{eq:cgconv} states.
 For what concerns the choice of the initial vector $x_0$ we used the 0 vector for all the experiments.
 Since our function to minimize is a convex function, whatever starting point we choose the algorithm converges to the (unique) optimal solution.
-In Figure \ref{cg_x0} we report in how many iterations the CG method converges to the optimal solution with a fixed level of accuracy ($10^{-11}$) with different starting point.
+In Figure~\ref{cg_x0} we report in how many iterations the CG method converges to the optimal solution with a fixed level of accuracy ($10^{-11}$) with different starting point.
 We note that if we start close to the optimal solution the algorithm requires few iterations while if we choose a starting vector far away from the optimum the number of iterations increases until it reaches a constant trend.
-In fact, from \eqref{eq:cgconv} follows that the rate of convergence is determined by the distance between the initial vector and the optimal solution.
+In fact, from~\eqref{eq:cgconv} follows that the rate of convergence is determined by the distance between the initial vector and the optimal solution.
 So it is preferable to start with an initial guess close to the optimum but since we don't have such estimate in advance, the 0 vector is a good trade-off.
 \subsection{Space}\label{subsec:space}
 With space we mean the additional number of bytes used by the methods in addition to the inputs, we measured it with \textit{numpy.array.nbytes}.
@@ -265,7 +279,7 @@ It turns out that the CG method is more suitable for large matrices in terms of 
 
 \subsection{Quality of solution}\label{subsec:quality-of-solution}
 The angle $\theta$ between $Ax$ and $b$ is telling us how well we can approximate $b$ from $Ax$, and the bigger it is, the higher is the changing in the solution $x$ w.r.t a small change in $b$.
-We compute it as $\arccos(\frac{\left\lVert Ax \right\rVert}{\left\lVert b \right\rVert})$, and its value is 0.45.
+We compute it as $\arccos\left(\frac{\left\lVert Ax \right\rVert}{\left\lVert b \right\rVert}\right)$, and its value is 0.45.
 To understand if this value is big or not, we compared it with the one obtained with random inputs $A$ and $b$ with same dimensions and range of values, and we obtained 0.82, so this value doesn't seem to be such big.
 Anyway, the condition number of the matrix A is big ($k(A) \sim 400000$), and if we compute the condition number w.r.t input b we obtain $k_{rel, b\rightarrow x} \leq \frac{k(A)}{\cos(\theta)} \sim 450000$ and w.r.t input A we obtain $k_{rel, A \rightarrow x} \leq k(A) + k(A)^{2} \tan(\theta) \sim 80\times 10^{9}$
 So the problem is highly conditioned, specially for $A$ w.r.t $x$.
@@ -317,25 +331,25 @@ In all the 3 cases, CG outperform QR in terms of time.
         \end{figure}
         \begin{figure}
             \includegraphics[width=\linewidth]{../results/square.png}
-            \caption{QR and CG methods: Computational time w.r.t. dimension n for square matrix $n \times n$}
+            \caption{QR and CG methods: Computational time w.r.t.\ dimension n for square matrix $n \times n$}
             \label{square}
         \end{figure}
         \begin{figure}
             \includegraphics[width=\linewidth]{../results/little_m.png}
-            \caption{QR and CG methods: Computational time w.r.t. dimension m for tall thin matrix $m \times n$ with $m > n$}
+            \caption{QR and CG methods: Computational time w.r.t.\ dimension m for tall thin matrix $m \times n$ with $m > n$}
             \label{little_m}
         \end{figure}
         \begin{figure}
             \includegraphics[width=\linewidth]{../results/big_m.png}
-            \caption{QR and CG methods: Computational time w.r.t. dimension m for tall thin matrix mxn with $m \gg n$}
+            \caption{QR and CG methods: Computational time w.r.t.\ dimension m for tall thin matrix mxn with $m \gg n$}
             \label{big_m}
         \end{figure}
-	
 
 
 \section{Conclusion}\label{sec:conclusion}
 Both QR and CG methods did solve the high conditioned LS problem of ML-cup, but the QR method is two order of magnitude more accurate and, as opposite as CG method, it doesn't require an initial point, a formula for $\beta$ and a number of iteration.
-Anyway, the CG method was $\sim 4$ times faster than the QR one, and it is more suitable for large problem because the space it needs is $O(n+m)$ instead of $O(nm)$ ($O(n)$ and $O(n^{2}$) respectively for square matrices). Finally, to reduce the condition number of the problem and hence to get a more accurate result with the CG method, it would be possible to apply the preconditioning technique. 
+Anyway, the CG method was $\sim 4$ times faster than the QR one, and it is more suitable for large problem because the space it needs is $O(n+m)$ instead of $O(nm)$ ($O(n)$ and $O(n^{2}$) respectively for square matrices).
+Finally, to reduce the condition number of the problem and hence to get a more accurate result with the CG method, it would be possible to apply the preconditioning technique.
 
 \bibliography{bibliography}
 \bibliographystyle{unsrt}

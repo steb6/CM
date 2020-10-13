@@ -10,6 +10,7 @@ from utils import conditioning_angle
 from psutil import virtual_memory
 from numpy.linalg import lstsq
 from scipy.linalg import solve_triangular
+import scipy
 
 # Parameters:
 # Number of tries to compute mean
@@ -38,12 +39,14 @@ print("Condition number of random matrix with same dimension and range of values
 print("********** COMPUTE SOLUTION WITH LIBRARY**********")
 # Library solution
 start = time.monotonic_ns()
-Q, R = np.linalg.qr(A)
+Q, R = scipy.linalg.qr(A, mode="economic")
+# R = R[:n]
+# Q = Q[:, :n]
 # x_np = np.matmul(np.linalg.inv(R), np.matmul(Q.T, b))
 x_np = solve_triangular(R, np.matmul(Q.T, b))
 done = time.monotonic_ns()
 elapsed = done - start
-print("numpy.linalg.qr: ns spent: ", elapsed)
+print("scipy.linalg.qr: ns spent: ", elapsed)
 print("||Ax - b||/||b|| =", np.divide(norm(np.matmul(A, x_np) - b), norm(b)))
 print("||A^T(Ax - b)||", norm(np.matmul(A.T, np.matmul(A, x_np) - b)))
 print("||Q^T (Ax - b)||", norm(np.matmul(Q.T, np.matmul(A, x_np) - b)))

@@ -22,9 +22,6 @@ print("||Ax - b|| = ", norm(np.matmul(A, x) - b))
 print("||Ax - b||/||b|| =", np.divide(norm(np.matmul(A, x) - b), norm(b)))
 print("||A*Ax - A*b|| =", norm(np.matmul(np.transpose(A),np.matmul(A, x)) - np.matmul(np.transpose(A),b)))
 
-Q, R = np.linalg.qr(A)
-print("||Q^T (Ax - b)||", norm(np.matmul(Q.T, np.matmul(A, x) - b)))
-
 # Library Least Squares solution
 start = time.monotonic_ns()
 xnp = np.linalg.lstsq(A, b, rcond=None)
@@ -85,50 +82,18 @@ plt.ylabel("Accuracy")
 plt.yscale('log',basey=10) 
 plt.savefig("results/cg_accuracy_rand.png")
 plt.show()
-'''
-# Different initial starting point
-xcg, _, _ = conjugate_gradient(A, b, eps = 1.e-5)
-xzeros = np.zeros(A.shape[1])
-#xrand = [random.uniform(xcg.min(), xcg.max()) for _ in range(A.shape[1])]
-#xrand1 = [random.uniform(xcg.min()*-10, xcg.max()*10) for _ in range(A.shape[1])]
-xrand = [x+random.randint(-5,5) for x in xnp[0]]
-xrand1 = [x*random.randint(-10,10) for x in xnp[0]]
-xrand2 = [random.uniform(xcg.min(), xcg.max()) for _ in range(A.shape[1])]
-xrand3 = [random.uniform(xcg.min()*-10, xcg.max()*10) for _ in range(A.shape[1])]
-x0s = [xnp[0], xcg, xrand, xzeros, xrand1, xrand2, xrand3]
-norms = []
-accs = []
-for x0 in x0s:
-    #print("Starting point: ", x0)
-    diff = norm(xnp[0]-x0)
-    norms.append(diff)
-    print("||x - x0||", diff)
-    x, _, _ = conjugate_gradient(A, b, x0)
-    accuracy =  norm(np.matmul(np.transpose(A),np.matmul(A, x)) - np.matmul(np.transpose(A),b))
-    accs.append(accuracy)
-    print("||A*Ax - A*b|| =", accuracy)
 
-# Creating plot
-print("Creating plot...")
-plt.plot(norms, accs)
-plt.xlabel("||x-x0||")
-plt.ylabel("Accuracy")
-plt.yscale('log',basey=10) 
-plt.savefig("results/cg_x0.png")
-plt.show()
-'''
-# Different initial starting point
+# Different initial starting points
 xcg, _, _ = conjugate_gradient(A, b, eps = 1.e-11)
-xzeros = np.zeros(A.shape[1])
-#xrand = [random.uniform(xcg.min(), xcg.max()) for _ in range(A.shape[1])]
-#xrand1 = [random.uniform(xcg.min()*-10, xcg.max()*10) for _ in range(A.shape[1])]
-xrand = [x+random.randint(-5,5) for x in xnp[0]]
+xzeros = np.zeros(A.shape[1])                      
+xrand = [x+random.randint(-5,5) for x in xnp[0]]   
 xrand1 = [x*random.randint(-10,10) for x in xnp[0]]
 xrand2 = [random.uniform(xcg.min(), xcg.max()) for _ in range(A.shape[1])]
 xrand3 = [random.uniform(xcg.min()*-10, xcg.max()*10) for _ in range(A.shape[1])]
 xrand4 = [random.uniform(xcg.min()*-20, xcg.max()*20) for _ in range(A.shape[1])]
 xrand5 = [random.uniform(xcg.min()*-30, xcg.max()*30) for _ in range(A.shape[1])]
-x0s = [xnp[0], xcg, xrand, xzeros, xrand1, xrand2, xrand3, xrand4, xrand5]
+x0s = [xnp[0], xcg, xrand, xzeros, xrand1, xrand2]
+
 norms = []
 iterations = []
 for x0 in x0s:
@@ -137,16 +102,18 @@ for x0 in x0s:
     norms.append(diff)
     print("||x - x0||", diff)
     x, _, ite = conjugate_gradient(A, b, x0, eps = 1.e-11, maxIter=1000000)
-    accuracy =  norm(np.matmul(np.transpose(A),np.matmul(A, x)) - np.matmul(np.transpose(A),b))
     iterations.append(ite)
     print("iterations: ", ite)
-    print("||A*Ax - A*b|| =", accuracy)
+    
 norms, iterations = zip(*sorted(zip(norms, iterations)))
 norms, iterations = (list(t) for t in zip(*sorted(zip(norms, iterations))))
 # Creating plot
 print("Creating plot...")
 plt.plot(norms, iterations)
+i = norms.index(norm(xnp[0]-np.zeros(A.shape[1])))
+plt.plot(norms[i], iterations[i], 'r*')
 plt.xlabel("||x-x0||")
 plt.ylabel("Iterations")
 plt.savefig("results/cg_x0_ite.png")
 plt.show()
+

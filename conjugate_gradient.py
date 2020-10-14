@@ -8,7 +8,7 @@ def conjugate_gradient(A, b, x0 = None, eps = None, maxIter = 1000):
     :param A: a matrix mxn
     :param b: a column vector nx1
     :param x0: starting point, if None the 0 vector is used as default starting point
-    :param eps: (optional, default value 1e-5) the accuracy in the stopping criterion
+    :param eps: (optional) the accuracy in the stopping criterion
     :param maxIter:  (optional, default value 1000): the maximum number of iterations
     :return: [x, status, ite]:
     :  - x (mx1 real column vector): it solves ||gradient(f(x))|| = A*Ax - A*b = 0

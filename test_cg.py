@@ -11,9 +11,9 @@ A, b = read_data('data/ML-CUP19-TR.csv')
 m, n = A.shape
 
 # Our solution
-start = time.monotonic_ns()
+start = time.perf_counter_ns()
 x, status, ite = conjugate_gradient(A, b)
-done = time.monotonic_ns()
+done = time.perf_counter_ns()
 elapsed = done - start
 print("our implementation: ns spent: ", elapsed)
 print("status: ", status)
@@ -23,9 +23,9 @@ print("||Ax - b||/||b|| =", np.divide(norm(np.matmul(A, x) - b), norm(b)))
 print("||A*Ax - A*b|| =", norm(np.matmul(np.transpose(A),np.matmul(A, x)) - np.matmul(np.transpose(A),b)))
 
 # Library Least Squares solution
-start = time.monotonic_ns()
+start = time.perf_counter_ns()
 xnp = np.linalg.lstsq(A, b, rcond=None)
-done = time.monotonic_ns()
+done = time.perf_counter_ns()
 elapsed = done - start
 print("numpy.linalg.qr: ns spent: ", elapsed)
 print("||Ax - b|| =", norm(np.matmul(A, xnp[0]) - b))
@@ -35,9 +35,9 @@ print("||A*Ax - A*b|| =", norm(np.matmul(np.transpose(A),np.matmul(A, x)) - np.m
 # Execution time over 1000 tries
 cg_tries = []
 for count in tqdm.tqdm(range(1000)):
-    start = time.monotonic_ns()
+    start = time.perf_counter_ns()
     x, _, _ = conjugate_gradient(A, b)
-    done = time.monotonic_ns()
+    done = time.perf_counter_ns()
     elapsed = done - start
     cg_tries.append(elapsed)
 cg_tries = np.array(cg_tries)

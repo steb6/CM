@@ -52,9 +52,9 @@ for matrix in MATRICES:
         # In order to have smoother lines, compute TRIES times and cut first and last CUT ones for QR
         tries = []
         for _ in range(TRIES):
-            start = time.monotonic_ns()
+            start = time.perf_counter_ns()
             _ = qr_method(A_, b_)
-            done = time.monotonic_ns()
+            done = time.perf_counter_ns()
             elapsed = done - start
             tries.append(elapsed)
         tries = np.array(tries)
@@ -65,9 +65,9 @@ for matrix in MATRICES:
         # Do the same with CG
         tries_cg = []
         for _ in range(TRIES):
-            start = time.monotonic_ns()
+            start = time.perf_counter_ns()
             _, _, _ = conjugate_gradient(A_, b_)
-            done = time.monotonic_ns()
+            done = time.perf_counter_ns()
             elapsed = done - start
             tries_cg.append(elapsed)
         tries_cg = np.array(tries_cg)

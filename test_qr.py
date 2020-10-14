@@ -20,7 +20,9 @@ CUT = 8
 A, b = read_data('data/ML-CUP19-TR.csv', add_augmented_columns=True)
 m, n = A.shape
 
-# Properties of the matrix A
+########################################################################################################################
+# Properties of matrix A #
+########################################################################################################################
 print("********** PROPERTIES OF THE MATRIX A **********")
 print('Dim: {} x {}'.format(m, n))
 print("Min: {}, Max: {}".format(A.min(), A.max()))
@@ -33,33 +35,59 @@ check = (((check - c_min) / (c_max - c_min)) * (A.max() - A.min())) + A.min()
 assert np.isclose(check.min(), A.min()) and np.isclose(check.max(), A.max())
 print("Condition number of random matrix with same dimension and range of values of A is " + str(np.linalg.cond(check)))
 
-# Compute solution with library
+########################################################################################################################
+# NUMPY solution #
+########################################################################################################################
 print("********** COMPUTE SOLUTION WITH LIBRARY NUMPY**********")
-start = time.monotonic_ns()
-Q, R = np.linalg.qr(A)
-x_np = solve_triangular(R, np.matmul(Q.T, b))
-done = time.monotonic_ns()
-elapsed = done - start
-print("scipy.linalg.qr: ns spent: ", elapsed)
+
+sp_tries = []
+x_np = None
+for count in tqdm.tqdm(range(1000)):
+    start = time.monotonic_ns()
+    Q, R = np.linalg.qr(A)
+    x_np = solve_triangular(R, np.matmul(Q.T, b))
+    done = time.monotonic_ns()
+    elapsed = done - start
+    sp_tries.append(elapsed)
+sp_tries = np.array(sp_tries)
+sp_tries.sort()
+sp_tries = sp_tries[:-100]
+sp_tries = sp_tries[100:]
+
+print("scipy.linalg.qr: ns spent: ", sp_tries.mean())
 print("||Ax - b||/||b|| =", np.divide(norm(np.matmul(A, x_np) - b), norm(b)))
 print("||A^T(Ax - b)||", norm(np.matmul(A.T, np.matmul(A, x_np) - b)))
 print("||Q^T (Ax - b)||", norm(np.matmul(Q.T, np.matmul(A, x_np) - b)))
 print("Space used by Q and R: ", Q.nbytes+R.nbytes)
 
-# Compute solution with library
+########################################################################################################################
+# SCIPY solution #
+########################################################################################################################
 print("********** COMPUTE SOLUTION WITH LIBRARY SCIPY**********")
-start = time.monotonic_ns()
-Q, R = scipy.linalg.qr(A, mode="economic")
-x_sp = solve_triangular(R, np.matmul(Q.T, b))
-done = time.monotonic_ns()
-elapsed = done - start
-print("scipy.linalg.qr: ns spent: ", elapsed)
-print("||Ax - b||/||b|| =", np.divide(norm(np.matmul(A, x_np) - b), norm(b)))
-print("||A^T(Ax - b)||", norm(np.matmul(A.T, np.matmul(A, x_np) - b)))
-print("||Q^T (Ax - b)||", norm(np.matmul(Q.T, np.matmul(A, x_np) - b)))
+sp_tries = []
+x_sp = None
+for count in tqdm.tqdm(range(1000)):
+    start = time.monotonic_ns()
+    Q, R = scipy.linalg.qr(A, mode="economic")
+    x_sp = solve_triangular(R, np.matmul(Q.T, b))
+    done = time.monotonic_ns()
+    elapsed = done - start
+    sp_tries.append(elapsed)
+sp_tries = np.array(sp_tries)
+sp_tries.sort()
+sp_tries = sp_tries[:-100]
+sp_tries = sp_tries[100:]
+
+print("scipy.linalg.qr: ns spent: ", sp_tries.mean())
+print("||Ax - b||/||b|| =", np.divide(norm(np.matmul(A, x_sp) - b), norm(b)))
+print("||A^T(Ax - b)||", norm(np.matmul(A.T, np.matmul(A, x_sp) - b)))
+print("||Q^T (Ax - b)||", norm(np.matmul(Q.T, np.matmul(A, x_sp) - b)))
 print("Space used by Q and R: ", Q.nbytes+R.nbytes)
 
-# Compute solution with our method, averaging the times
+########################################################################################################################
+# OUR solution #
+########################################################################################################################
+print("********** COMPUTE SOLUTION WITH OUR IMPLEMENTATION **********")
 qr_tries = []
 x = None
 for count in tqdm.tqdm(range(1000)):
@@ -72,11 +100,7 @@ qr_tries = np.array(qr_tries)
 qr_tries.sort()
 qr_tries = qr_tries[:-100]
 qr_tries = qr_tries[100:]
-print(qr_tries.mean())
-
-# assert np.isclose(norm(x-x_np), 0, atol=1.e-5)
-print("********** COMPUTE SOLUTION WITH OUR IMPLEMENTATION **********")
-print("our implementation: ns spent: ", elapsed)
+print("our implementation: ns spent: ", qr_tries.mean())
 print("||Ax - b|| = ", norm(np.matmul(A, x) - b))
 print("||Ax - b||/||b|| =", np.divide(norm(np.matmul(A, x) - b), norm(b)))
 print("||Ax - b||/(||A||*||x||)", norm(A)*norm(x))
@@ -89,27 +113,31 @@ print("||k(A)/cos(theta)", np.linalg.cond(A)/np.cos(conditioning_angle(A, b, x))
 print("||k(A) + k(A)^2 tan(theta)||",
       np.linalg.cond(A)+np.square(np.linalg.cond(A))*np.tan(conditioning_angle(A, b, x)))
 
-# Solution found with numpy.linalg.lstsq
-print("********** numpy.linalg.lstsq solution **********")
-start = time.monotonic_ns()
-x_lstsq = lstsq(A, b, rcond=None)[0]
-done = time.monotonic_ns()
-elapsed = done - start
-print("numpy lstsq resolution: ns spent: ", elapsed)
-print("||Ax - b|| = ", norm(np.matmul(A, x_lstsq) - b))
-print("||Ax - b||/||b|| =", np.divide(norm(np.matmul(A, x_lstsq) - b), norm(b)))
-print("Conditioning angle: ", conditioning_angle(A, b, x_lstsq))
+########################################################################################################################
+# LSTSQ solution #
+########################################################################################################################
+# print("********** numpy.linalg.lstsq solution **********")
+# start = time.monotonic_ns()
+# x_lstsq = lstsq(A, b, rcond=None)[0]
+# done = time.monotonic_ns()
+# elapsed = done - start
+# print("numpy lstsq resolution: ns spent: ", elapsed)
+# print("||Ax - b|| = ", norm(np.matmul(A, x_lstsq) - b))
+# print("||Ax - b||/||b|| =", np.divide(norm(np.matmul(A, x_lstsq) - b), norm(b)))
+# print("Conditioning angle: ", conditioning_angle(A, b, x_lstsq))
 
-# Solution with pseudoinverse
-print("********** Pseudoinverse solution **********")
-start = time.monotonic_ns()
-x_pi = np.matmul(np.linalg.inv(np.matmul(A.T, A)), np.matmul(A.T, b))
-done = time.monotonic_ns()
-elapsed = done - start
-print("pseudoinverse resolution: ns spent: ", elapsed)
-print("||Ax - b|| = ", norm(np.matmul(A, x_lstsq) - b))
-print("||Ax - b||/||b|| =", np.divide(norm(np.matmul(A, x_lstsq) - b), norm(b)))
-print("Conditioning angle: ", conditioning_angle(A, b, x_lstsq))
+########################################################################################################################
+# PSEUDOINVERSE solution #
+########################################################################################################################
+# print("********** Pseudoinverse solution **********")
+# start = time.monotonic_ns()
+# x_pi = np.matmul(np.linalg.inv(np.matmul(A.T, A)), np.matmul(A.T, b))
+# done = time.monotonic_ns()
+# elapsed = done - start
+# print("pseudoinverse resolution: ns spent: ", elapsed)
+# print("||Ax - b|| = ", norm(np.matmul(A, x_pi) - b))
+# print("||Ax - b||/||b|| =", np.divide(norm(np.matmul(A, x_pi) - b), norm(b)))
+# print("Conditioning angle: ", conditioning_angle(A, b, x_pi))
 
 # What if problem was well conditioned?
 print("********** What if problem were well conditioned? **********")

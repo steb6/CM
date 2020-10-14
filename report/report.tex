@@ -40,7 +40,7 @@ holds, where
 \begin{itemize}
 	\item $A$ is a \textit{tall thin matrix} (so it is a matrix $A\in M(m, n, R)$ where $m \gg n$)
 	\item $b$ is a vector of real number
-	\item $\|.\|$ is the \textit{2-norm} or \textit{Euclidean Norm}: $\|x\| := \sqrt{\sum_{i=1}^n x_i}$
+	\item $\|.\|$ is the \textit{2-norm} or \textit{Euclidean Norm}: $\|x\| := \sqrt{\sum_{i=1}^n x_i^2}$
 \end{itemize}
 and so to find the closest vector to $b$ inside the hyperplane $Im(A)$.
 
@@ -124,9 +124,9 @@ This factorization algorithm is bandwidth heavy and not parallelizable, as every
 Our input data is the matrix A, which is the tall thin matrix used as input in the \textit{ML-cup 2019--2020} competition.
 Its shape is $(1765, 20)$, we augmented it with few functions of the features of the dataset:
 \begin{itemize}
-	\item \textbf{21\textsuperscript{th} column}: logarithm of the absolute value of the 1\textsuperscript{st} column
-	\item \textbf{22\textsuperscript{th} column}: product of 2\textsuperscript{nd}, 3\textsuperscript{rd} and 4\textsuperscript{th} columns
-	\item \textbf{23\textsuperscript{th} column}: 5\textsuperscript{th} column to square
+	\item \textbf{21\textsuperscript{st} column}: logarithm of the absolute value of the 1\textsuperscript{st} column
+	\item \textbf{22\textsuperscript{nd} column}: product of 2\textsuperscript{nd}, 3\textsuperscript{rd} and 4\textsuperscript{th} columns
+	\item \textbf{23\textsuperscript{rd} column}: 5\textsuperscript{th} column to square
 \end{itemize}
 So the final shape of $A$ is $(1765, 23)$.
     The condition number of the matrix $A$ (calculated with \textit{numpy.linalg.cond}, which does SVD and $\frac{\sigma_{1}}{\sigma_{n}}$) is $\approx 400000 (4 \times 10^{5})$, while the condition number of a random matrix with the same dimension and same range of values (min and max of the 2 matrices are the same) is $\approx 1.7$.
@@ -238,17 +238,17 @@ Moreover, for the QR factorization, we are going to test how the computational c
         \begin{tabular}{l|c|c|c|c|r}
             \textbf{method} & \textbf{Time [ns]} & \textbf{Space [bytes]} & $\frac{\|\textbf{Ax - b}\|}{\left\lVert b \right\rVert}$ & $\|\textbf{A}^{T}(\textbf{Ax} - \textbf{b})\|$ & $\|\textbf{Q}^{T}\textbf{(Ax - b)}\|$\\
             \hline
-            CG & 1557500 & 15040 & 0.4369 & 7.86e-03 & - \\
-            QR & 5813172 & 322736 & 0.4369 & 1.4766e-07 & 1.6231e-09 \\
-            np.linalg.qr & 804062 & 328992 & 0.4369 & 2.3783e-07 & 1.6379e-09 \\
-            scipy.linalg.qr & 2293697 & 328992 & 0.4369 & 2.5920e-07 & 1.7830e-09
+            CG & 3039378 & 15040 & 0.4369 & 7.86e-03 & - \\
+            QR & 6588780 & 322736 & 0.4369 & 1.7228-07 & 1.4577e-09 \\
+            np.linalg.qr & 1039482 & 328992 & 0.4369 & 2.7481e-08 & 4.4336e-10 \\
+            scipy.linalg.qr & 2876662 & 328992 & 0.4369 & 3.3332e-08 & 5.0628e-10
         \end{tabular}
     \end{center}
 \end{table}
 
 \subsection{Time}\label{subsec:time}
 For the time results we averaged 1000 run using \textit{time.monotonic\_ns()}, and we removed the best and worst 100 ones.
-The CG method is $\sim 4$ times faster than the QR method: for the QR method we need n steps to compute the n $v_{i}$'s vector and the matrix $R$, while the CG method is an iterative method and we can choose after how many iterations to stop.
+The CG method is $\sim 2$ times faster than the QR method: for the QR method we need n steps to compute the n $v_{i}$'s vector and the matrix $R$, while the CG method is an iterative method and we can choose after how many iterations to stop.
 In Table~\ref{tab:table4} we report the results obtained performing the CG method for $n$ iterations, since theoretically this algorithm should return the exact solution after $n$ steps.
 However, after such a low number of iterations we fail to achieve a good accuracy.
 Plots in Figure~\ref{cg_acc} show how the number of iterations changes according to different levels of accuracy required by the algorithm.
@@ -347,11 +347,13 @@ In all the 3 cases, CG outperform QR in terms of time.
 
 
 \section{Conclusion}\label{sec:conclusion}
-Both QR and CG methods did solve the high conditioned LS problem of ML-cup, but the QR method is two order of magnitude more accurate and, as opposite as CG method, it doesn't require an initial point, a formula for $\beta$ and a number of iteration.
-Anyway, the CG method was $\sim 4$ times faster than the QR one, and it is more suitable for large problem because the space it needs is $O(n+m)$ instead of $O(nm)$ ($O(n)$ and $O(n^{2}$) respectively for square matrices).
+Both QR and CG methods did solve the high conditioned LS problem of ML-cup, but the QR method is three order of magnitude more accurate and, as opposite as CG method, it doesn't require an initial point, a formula for $\beta$ and a number of iteration.
+Anyway, the CG method was $\sim 2$ times faster than the QR one, and it is more suitable for large problem because the space it needs is $O(n+m)$ instead of $O(nm)$ ($O(n)$ and $O(n^{2}$) respectively for square matrices).
 Finally, to reduce the condition number of the problem and hence to get a more accurate result with the CG method, it would be possible to apply the preconditioning technique.
 
 \bibliography{bibliography}
 \bibliographystyle{unsrt}
 
 \end{document}
+
+

@@ -43,10 +43,10 @@ print("********** COMPUTE SOLUTION WITH LIBRARY NUMPY**********")
 sp_tries = []
 x_np = None
 for count in tqdm.tqdm(range(1000)):
-    start = time.monotonic_ns()
+    start = time.perf_counter_ns()
     Q, R = np.linalg.qr(A)
     x_np = solve_triangular(R, np.matmul(Q.T, b))
-    done = time.monotonic_ns()
+    done = time.perf_counter_ns()
     elapsed = done - start
     sp_tries.append(elapsed)
 sp_tries = np.array(sp_tries)
@@ -54,7 +54,7 @@ sp_tries.sort()
 sp_tries = sp_tries[:-100]
 sp_tries = sp_tries[100:]
 
-print("scipy.linalg.qr: ns spent: ", sp_tries.mean())
+print("numpy.linalg.qr: ns spent: ", sp_tries.mean())
 print("||Ax - b||/||b|| =", np.divide(norm(np.matmul(A, x_np) - b), norm(b)))
 print("||A^T(Ax - b)||", norm(np.matmul(A.T, np.matmul(A, x_np) - b)))
 print("||Q^T (Ax - b)||", norm(np.matmul(Q.T, np.matmul(A, x_np) - b)))
@@ -67,10 +67,10 @@ print("********** COMPUTE SOLUTION WITH LIBRARY SCIPY**********")
 sp_tries = []
 x_sp = None
 for count in tqdm.tqdm(range(1000)):
-    start = time.monotonic_ns()
+    start = time.perf_counter_ns()
     Q, R = scipy.linalg.qr(A, mode="economic")
     x_sp = solve_triangular(R, np.matmul(Q.T, b))
-    done = time.monotonic_ns()
+    done = time.perf_counter_ns()
     elapsed = done - start
     sp_tries.append(elapsed)
 sp_tries = np.array(sp_tries)
@@ -91,9 +91,9 @@ print("********** COMPUTE SOLUTION WITH OUR IMPLEMENTATION **********")
 qr_tries = []
 x = None
 for count in tqdm.tqdm(range(1000)):
-    start = time.monotonic_ns()
+    start = time.perf_counter_ns()
     x = qr_method(A, b)
-    done = time.monotonic_ns()
+    done = time.perf_counter_ns()
     elapsed = done - start
     qr_tries.append(elapsed)
 qr_tries = np.array(qr_tries)
@@ -165,9 +165,9 @@ for k in tqdm.tqdm(sizes):
     b_ = b[:k]
     tries = []
     for i in range(TRIES):
-        start = time.monotonic_ns()
+        start = time.perf_counter_ns()
         x = qr_method(A_, b_)
-        done = time.monotonic_ns()
+        done = time.perf_counter_ns()
         elapsed = done - start
         tries.append(elapsed)
     tries = np.array(tries)
@@ -187,4 +187,5 @@ plt.plot(x, m*x + c, 'r', label='Fitted line')
 plt.ylabel("Time for QR factorization")
 plt.xlabel("Largest dimension of A")
 plt.title("ML-cup matrix")
+plt.savefig("results/qr_linear_scaling.png")
 plt.show()

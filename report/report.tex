@@ -65,7 +65,7 @@ From now on we set $B = A^{T}A$ and $c = A^{T}b$ so our function to minimize bec
 \item \textbf{B-norm}: the B-norm of $x \in R^{m}$ is $\|x\|_{B} := (x^{t}Bx)^{\frac{1}{2}}$.
 \item Note that if B is \textit{positive definite}, then the B-norm is $\geq 0$ (it is $0$ only for the $0$ vector)
 \end{itemize}
-Let $x_{k}$ be the parameter vector after the $k$-th iteration, then the residual vector is $r_{k} = b - Ax_{k}$ and the negative gradient $g_{k} = -\nabla f(x_{k}) = c - Bx = A^{T}b - A^{T}Ax = A^{T}r_{k}$.
+Let $x_{k}$ be the parameter vector after the $k$-th iteration, then the residual vector is $r_{k} = b - Ax_{k}$ and the negative gradient $g_{k} = -\nabla f(x_{k}) = c - Bx_k = A^{T}b - A^{T}Ax_k = A^{T}r_{k}$.
 The step size $\alpha_{k}$ can be computed in a similar way as in the standard CG method, but here the denominator is $d_{k}^{T}Bd_k= d_{k}^{T}A^{T}Ad_k = \|Ad_{k}\|^2$ and so it can be obtained without calculating $B = A^{T}A$.
 \\To update the residual, we use the fact that $r_{k} = b - Ax_{k} = [x_{k} = x_{k-1} + \alpha_{k-1}d_{k-1}] = b - A(x_{k-1} + \alpha_{k-1}d_{k-1}) = [b-Ax_{k-1} = r_{k-1}] = r_{k-1} - \alpha_{k-1}Ad_{k-1}$.
 The trick about conjugate gradient is that at each step we generate a new search direction, which is not exactly the residual, but is the residual modified to be $B$-orthogonal to the previous search direction.
@@ -98,7 +98,7 @@ the ratio $\rho = \lambda_{\max}/\lambda_{\min}$ gives us an upper bound of the 
 So we would like to have $\rho$ near one, that means our matrix is near multiple of the identity and then the CG method is relatively stable.
 
 The algorithm performs at every step two multiplications  (one is enough if we compute it and store it) of $A$ with the $n$-vector $d_i$ $(O(mn))$ and one multiplication of $A^{T}$ with the $m$-vector $r_i$ $(O(nm))$.
-So, the total cost is $n(O(mn) + O((nm)) + O(n)) \approx O(n^{2m})$, where $O(n)$ comes from the scalars product between $n$-vectors to compute the norms for every steps.
+So, the total cost is $n(O(mn) + O((nm)) + O(n)) \approx O(n^{2}m)$, where $O(n)$ comes from the scalars product between $n$-vectors to compute the norms for every steps.
 
 The convergence of the Conjugate Gradient Method depends on the maximum eigenvalue $\lambda_{\max}$ and the minimum eigenvalue $\lambda_{\min}$, and CG converges with rate
 \begin{equation}\label{eq:cgconv}
@@ -283,7 +283,7 @@ We compute it as $\arccos\left(\frac{\left\lVert Ax \right\rVert}{\left\lVert b 
 To understand if this value is big or not, we compared it with the one obtained with random inputs $A$ and $b$ with same dimensions and range of values, and we obtained 0.82, so this value doesn't seem to be such big.
 Anyway, the condition number of the matrix A is big ($k(A) \sim 400000$), and if we compute the condition number w.r.t input b we obtain $k_{rel, b\rightarrow x} \leq \frac{k(A)}{\cos(\theta)} \sim 450000$ and w.r.t input A we obtain $k_{rel, A \rightarrow x} \leq k(A) + k(A)^{2} \tan(\theta) \sim 80\times 10^{9}$
 So the problem is highly conditioned, specially for $A$ w.r.t $x$.
-The solution have a similar residual $\left\lVert Ax - b \right\rVert$, but looking at the value $\left\lVert A^{T}(Ax - b)\right\rVert$, we can say that the QR solution is two order of magnitude closer to the true solution.
+The solution have a similar residual $\left\lVert Ax - b \right\rVert$, but looking at the value $\left\lVert A^{T}(Ax - b)\right\rVert$, we can say that the QR solution is three order of magnitude closer to the true solution.
 Anyway the residual is quite big because it is problem dependent and it tells us how well we can extract $b$ from $Im(A)$.
 % Anyway, the solutions are similar in terms of residual, it can be observed that both are close to the true solution, because the value $A^{T}Ax - A^{T}b$ for the CG method and $Q^{T}(Ax - b)$ for the QR method are close to zero for both, but the residual is big anyway.
 %\begin{table}[h!]
